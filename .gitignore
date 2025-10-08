@@ -1,0 +1,7 @@
+**/Directory.Build.props
+.git/
+bin/
+obj/
+.idea/
+*.user
+*.csproj
