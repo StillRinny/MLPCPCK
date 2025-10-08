@@ -24,8 +24,8 @@ namespace MLPCPCK_utils {
         
     }
 
-    public static class MLPAbility {
-        public static Ability CandyCurse; // JLDR reference: MLPAbility.CandyCurse
+    public static class MLPAbilities {
+        public static Ability CandyCurse; // JLDR reference: MLPAbilities.Candy Curse
     }
 
     public static class PluginInfo {

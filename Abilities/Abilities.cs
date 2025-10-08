@@ -1,5 +1,7 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using DiskCardGame;
+using HarmonyLib;
 using InscryptionAPI.Card;
 using InscryptionAPI.Helpers;
 using UnityEngine;
@@ -12,22 +14,22 @@ namespace MLPCPCK_utils.Abilities
         public override Ability Ability => ability;
         
         public static void AddAbility() {
-            AbilityInfo abil = ScriptableObject.CreateInstance<AbilityInfo>();
-            abil.rulebookName = "Candy Curse";
-            abil.SetRulebookDescription("This sigil permanently grants 1 attack per card killed by it's bearer. " +
-                                        "Upon the card's death it will permanently lose 2 attack. " +
-                                        "Upon reaching 4 or above attack the sigil's bearer will gain Made of Stone. " +
-                                        "Upon reaching 7 or above attack, the card will gain Omnistrike. " +
-                                        "This sigil may not obey cards that are not The Candy Mare."
+            AbilityInfo abil = AbilityManager.New(nameof(MLPAbilities),
+            "Candy Curse",
+        "This sigil permanently grants 1 attack per card killed by it's bearer. " +
+                        "Upon the card's death it will permanently lose 2 attack. " +
+                        "Upon reaching 4 or above attack the sigil's bearer will gain Made of Stone. " +
+                        "Upon reaching 7 or above attack, the card will gain Omnistrike. " +
+                        "This sigil may not obey cards that are not The Candy Mare.",
+                typeof(CandyCurse),
+                "candisigilmlp.png"
             );
-            AbilityManager.Add("MLPCPCK", abil, typeof(CandyCurse), TextureHelper.GetImageAsTexture("candisigilmlp.png"));
-            abil.name = $"{nameof(MLPAbility)}_{nameof(MLPAbility.CandyCurse)}"; // JLDR names format
             abil.SetPixelAbilityIcon(TextureHelper.GetImageAsTexture("candisigilmlpsmall.png"));
             abil.powerLevel = 4;
             abil.canStack = false;
             abil.opponentUsable = false;
             abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
-            MLPAbility.CandyCurse = ability = abil.ability; // Shortcut to use | Check definition in Plugin.cs
+            MLPAbilities.CandyCurse = ability = abil.ability; // Shortcut to use | Check definition in Plugin.cs
         }
 
         /*/
@@ -72,10 +74,19 @@ namespace MLPCPCK_utils.Abilities
         }
 
         private void UpdateAbilities() {
+            bool upgradeHappened = false;
             int val = _curse.attackAdjustment;
-            var abil = _curse.abilities;
-            abil[0] = val >= 4 ? Ability.MadeOfStone : Ability.None;
-            abil[1] = val >= 7 ? Ability.AllStrike : Ability.None;
+            var abil = _curse.abilities = new List<Ability>(2);
+
+            if (val >= 4) {
+                abil.Add(Ability.MadeOfStone);
+                upgradeHappened = true;
+            }
+            if (val >= 7) {
+                abil.Add(Ability.AllStrike);
+                upgradeHappened = true;
+            }
+            if (upgradeHappened) Card.Anim.PlayTransformAnimation();
             Card.OnStatsChanged();
         }
     }
