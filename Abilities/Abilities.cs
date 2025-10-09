@@ -77,11 +77,11 @@ namespace MLPCPCK_utils.Abilities
                 _curse.attackAdjustment = atk > 0 ? atk : 0;
             }
             else {
-                int st = atk / 2;
-                int nd = 8 / atk;
+                double st = (double)atk / 2;
+                double nd = 8 / (double)atk;
                 nd = 2 / nd;
                 st -= nd;
-                _curse.attackAdjustment -= st;
+                _curse.attackAdjustment -= (int)st;
             }
             yield break;
             
@@ -105,7 +105,7 @@ namespace MLPCPCK_utils.Abilities
             if (val > 6) abil.Add(Ability.AllStrike); // >= 7
             if (sabil.Count == abil.Count) return;
             
-            sabil = abil; // _curse.abilities = abil;
+            _curse.abilities = abil;
             Card.OnStatsChanged();
             Card.Anim.PlayTransformAnimation();
         }
