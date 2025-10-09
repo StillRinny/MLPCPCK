@@ -9,7 +9,7 @@ namespace MLPCPCK_utils {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("cyantist.inscryption.api", BepInDependency.DependencyFlags.SoftDependency)]
     
-    public class Plugin : BaseUnityPlugin {
+    public class Plugin : BaseUnityPlugin { 
         private readonly Harmony harmony = new Harmony(PluginInfo.PLUGIN_NAME);
         internal static ManualLogSource Log { get; set; }
 
@@ -21,11 +21,10 @@ namespace MLPCPCK_utils {
             
             CandyCurse.AddAbility();
         }
-        
     }
 
     public static class MLPAbilities {
-        public static Ability CandyCurse; // JLDR reference: MLPAbilities.Candy Curse
+        public static readonly Ability CandyCurse = Abilities.CandyCurse.AddAbility(); // JLDR reference: MLPAbilities.Candy Curse
     }
 
     public static class PluginInfo {
