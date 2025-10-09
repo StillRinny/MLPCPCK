@@ -71,10 +71,22 @@ namespace MLPCPCK_utils.Abilities
              * (atk <= 8) -> -2
              *
             /*/
+
+            if (atk <= 8) {
+                atk -= 2;
+                _curse.attackAdjustment = atk > 0 ? atk : 0;
+            }
+            else {
+                int st = atk / 2;
+                int nd = 8 / atk;
+                nd = 2 / nd;
+                st -= nd;
+                _curse.attackAdjustment -= st;
+            }
+            yield break;
             
             atk -= 2;
             _curse.attackAdjustment = atk > 0 ? atk : 0;
-            yield break;
         }
 
         // OnAttackEnded
