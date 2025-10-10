@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using DiskCardGame;
+using InscryptionAPI.Boons;
 using InscryptionAPI.Card;
 using InscryptionAPI.Helpers;
+using Sirenix.Utilities;
 
 namespace MLPCPCK_utils.Abilities
 {
@@ -38,7 +40,9 @@ namespace MLPCPCK_utils.Abilities
         private CardModificationInfo _curse; // CandyCurse's modInfo, including all changes take from this ability
 
         private void Start() { // init > _curse init
-            _curse = Card.Info.Mods.Find(m => m.singletonId.Equals(ID)); // Pop _curse modInfo from Card
+            var mods = Card.Info.Mods;
+            if (mods.Count > 0) _curse = mods.Find(m => m != null && m.singletonId.Equals(ID)); // Pop _curse modInfo from Card
+           
             if (_curse == null) { // Create modInfo and push it to Card Mods, if it's not on Card yet
                 _curse = new CardModificationInfo { singletonId = ID };
                 RunState.Run.playerDeck.ModifyCard(Card.Info, _curse);
@@ -59,18 +63,6 @@ namespace MLPCPCK_utils.Abilities
         public override bool RespondsToDie(bool wasSacrifice, PlayableCard killer) => true;
         public override IEnumerator OnDie(bool wasSacrifice, PlayableCard killer) {
             int atk = _curse.attackAdjustment;
-            
-            /*/ atk / 2 - 2 / ( 8 / atk )
-             *
-             * 165 / 2 - 2/(8/165)  = (83)82.5 - 40      = 43 (165 -> 125) 
-             * 73 / 2 - 2/(8/73)    = (37)36.5 - 20      = 17 (73 -> 56)
-             * 31 / 2 - 2/(8/31)    = 16(15.5) - 1(0.5)  = 15 (31 -> 16)
-             * 20 / 2 - 2/(8/20)    = 10 - 5             = 5 (20 -> 15)
-             * 10 / 2 - 2/(8/10)    = 5 - 3(2.5)         = 2 (10 -> 8)
-             * 9 / 2 - 2/(8/9)      = 5(4.5) - 2(2.2)    = 3 (9 -> 6)
-             * (atk <= 8) -> -2
-             *
-            /*/
 
             if (atk <= 8) {
                 atk -= 2;
