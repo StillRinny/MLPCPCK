@@ -41,7 +41,7 @@ namespace MLPCPCK_utils.Abilities
 
         private void Start() { // init > _curse init
             var mods = Card.Info.Mods;
-            if (mods.Count > 0) _curse = mods.Find(m => m != null && m.singletonId.Equals(ID)); // Pop _curse modInfo from Card
+            if (mods.Count > 0) _curse = mods.Find(m => m.singletonId != null && m.singletonId.Equals(ID)); // Pop _curse modInfo from Card
            
             if (_curse == null) { // Create modInfo and push it to Card Mods, if it's not on Card yet
                 _curse = new CardModificationInfo { singletonId = ID };
