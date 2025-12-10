@@ -1,10 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using DiskCardGame;
-using InscryptionAPI.Boons;
 using InscryptionAPI.Card;
 using InscryptionAPI.Helpers;
-using Sirenix.Utilities;
 
 namespace MLPCPCK_utils.Abilities
 {
@@ -42,7 +40,7 @@ namespace MLPCPCK_utils.Abilities
         private void Start() { // init > _curse init
             var mods = Card.Info.Mods;
             if (mods.Count > 0) _curse = mods.Find(m => m.singletonId != null && m.singletonId.Equals(ID)); // Pop _curse modInfo from Card
-           
+
             if (_curse == null) { // Create modInfo and push it to Card Mods, if it's not on Card yet
                 _curse = new CardModificationInfo { singletonId = ID };
                 RunState.Run.playerDeck.ModifyCard(Card.Info, _curse);
@@ -56,7 +54,7 @@ namespace MLPCPCK_utils.Abilities
             _curse.attackAdjustment++;
             Card.OnStatsChanged(); // Update stats
             Card.Anim.LightNegationEffect();
-            yield break;
+            yield return PreSuccessfulTriggerSequence();
         }
 
         // OnDie
@@ -76,9 +74,6 @@ namespace MLPCPCK_utils.Abilities
                 _curse.attackAdjustment -= (int)st;
             }
             yield break;
-            
-            atk -= 2;
-            _curse.attackAdjustment = atk > 0 ? atk : 0;
         }
 
         // OnAttackEnded
@@ -92,11 +87,11 @@ namespace MLPCPCK_utils.Abilities
             int val = _curse.attackAdjustment;
             var sabil = _curse.abilities;
             var abil = new List<Ability>(2);
-            
+
             if (val > 3) abil.Add(Ability.MadeOfStone); // >= 4
             if (val > 6) abil.Add(Ability.AllStrike); // >= 7
             if (sabil.Count == abil.Count) return;
-            
+
             _curse.abilities = abil;
             Card.OnStatsChanged();
             Card.Anim.PlayTransformAnimation();

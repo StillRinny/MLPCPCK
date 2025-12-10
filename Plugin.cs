@@ -8,7 +8,7 @@ using MLPCPCK_utils.Abilities;
 namespace MLPCPCK_utils {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("cyantist.inscryption.api", BepInDependency.DependencyFlags.SoftDependency)]
-    
+
     public class Plugin : BaseUnityPlugin { 
         private readonly Harmony harmony = new Harmony(PluginInfo.PLUGIN_NAME);
         internal static ManualLogSource Log { get; set; }
@@ -18,13 +18,15 @@ namespace MLPCPCK_utils {
             harmony.PatchAll();
             Logger.LogInfo($"Patched methods: {harmony.GetPatchedMethods().Count()}");
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} loaded!");
-            
-            CandyCurse.AddAbility();
+
+            //CandyCurse.AddAbility();
+            //Swarm.AddAbility();
         }
     }
 
     public static class MLPAbilities {
         public static readonly Ability CandyCurse = Abilities.CandyCurse.AddAbility(); // JLDR reference: MLPAbilities.Candy Curse
+        public static readonly Ability Swarm = Abilities.Swarm.AddAbility(); // JLDR reference: MLPAbilities.Swarm
     }
 
     public static class PluginInfo {
@@ -32,6 +34,6 @@ namespace MLPCPCK_utils {
 
         public const string PLUGIN_NAME = "MLP:FIM CardPack utils";
 
-        public const string PLUGIN_VERSION = "0.1.2";
+        public const string PLUGIN_VERSION = "0.2.0";
     }
 }
