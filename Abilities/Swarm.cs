@@ -11,15 +11,15 @@ namespace MLPCPCK_utils.Abilities
         private static Ability ability;
         public override Ability Ability => ability;
         public static Ability AddAbility() {
-            AbilityInfo abil = AbilityManager.New(nameof(MLPAbilities),
-                "Swarm",
+            AbilityInfo abil = AbilityManager.New(nameof(MLPAbility),
+                "Swarms",
                 "This sigil will place a random changeling card on either side of it's bearer once placed.",
                 typeof(Swarm),
                 "swarmsigilmlp.png"
             );
             abil.SetPixelAbilityIcon(TextureHelper.GetImageAsTexture("swarmsigilmlpsmall.png"));
-            abil.powerLevel = -1; // why?
-            abil.canStack = true; // why?
+            abil.powerLevel = 2;
+            abil.canStack = false;
             abil.opponentUsable = false;
             abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
             return ability = abil.ability;

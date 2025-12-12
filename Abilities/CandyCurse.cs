@@ -12,7 +12,7 @@ namespace MLPCPCK_utils.Abilities
         public override Ability Ability => ability;
 
         public static Ability AddAbility() {
-            AbilityInfo abil = AbilityManager.New(nameof(MLPAbilities),
+            AbilityInfo abil = AbilityManager.New(nameof(MLPAbility),
             "Candy Curse",
         "This sigil permanently grants 1 attack per card killed by it's bearer. " +
                         "Upon the card's death it will permanently lose 2 attack. " +

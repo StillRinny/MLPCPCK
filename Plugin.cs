@@ -19,14 +19,14 @@ namespace MLPCPCK_utils {
             Logger.LogInfo($"Patched methods: {harmony.GetPatchedMethods().Count()}");
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} loaded!");
 
-            //CandyCurse.AddAbility();
+            CandyCurse.AddAbility();
             //Swarm.AddAbility();
         }
     }
 
-    public static class MLPAbilities {
-        public static readonly Ability CandyCurse = Abilities.CandyCurse.AddAbility(); // JLDR reference: MLPAbilities.Candy Curse
-        public static readonly Ability Swarm = Abilities.Swarm.AddAbility(); // JLDR reference: MLPAbilities.Swarm
+    public static class MLPAbility {
+        public static readonly Ability CandyCurse = Abilities.CandyCurse.AddAbility(); // JLDR reference: MLPAbility.Candy Curse
+        public static readonly Ability Swarm = Abilities.Swarm.AddAbility(); // JLDR reference: MLPAbility.Swarm
     }
 
     public static class PluginInfo {
@@ -34,6 +34,6 @@ namespace MLPCPCK_utils {
 
         public const string PLUGIN_NAME = "MLP:FIM CardPack utils";
 
-        public const string PLUGIN_VERSION = "0.2.0";
+        public const string PLUGIN_VERSION = "0.2.5.0";
     }
 }
