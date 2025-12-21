@@ -12,7 +12,8 @@ namespace MLPCPCK_utils.Tests
         }
 
         private void ChangePosition() { // Test
-            transform.SetPositionAndRotation(position: new Vector3(1f, 1f, 1f), rotation: new Quaternion(1f, 1f, 1f, 1f));
+            transform.SetPositionAndRotation(Singleton<BoardManager3D>.Instance.Bell.transform.position, Singleton<BoardManager3D>.Instance.Bell.transform.rotation);
+            //transform.SetPositionAndRotation(position: new Vector3(1f, 1f, 1f), rotation: new Quaternion(1f, 1f, 1f, 1f));
             // >> transform.gameObject.GetComponent() << Model?
         }
         
@@ -60,6 +61,7 @@ namespace MLPCPCK_utils.Tests
         }
 
         protected override void OnCursorEnter() { // Hover
+            Plugin.Log.LogError("Cum!");
             ShowState(HighlightedInteractable.State.Highlighted);
         }
 

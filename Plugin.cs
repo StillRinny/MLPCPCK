@@ -20,12 +20,13 @@ namespace MLPCPCK_utils {
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} loaded!");
 
             CandyCurse.AddAbility();
-            //Swarm.AddAbility();
+            Swarm.AddAbility();
         }
     }
 
     public static class MLPAbility {
         public static readonly Ability CandyCurse = Abilities.CandyCurse.AddAbility(); // JLDR reference: MLPAbility.Candy Curse
+        public static readonly Ability HardReset = Abilities.HardReset.AddAbility(); // JLDR reference: MLPAbility.Hard Reset
         public static readonly Ability Swarm = Abilities.Swarm.AddAbility(); // JLDR reference: MLPAbility.Swarm
     }
 
