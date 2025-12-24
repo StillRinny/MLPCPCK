@@ -20,7 +20,8 @@ namespace MLPCPCK_utils {
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} loaded!");
 
             CandyCurse.AddAbility();
-            Swarm.AddAbility();
+            //Swarm.AddAbility();
+            HardReset.AddAbility();
         }
     }
 

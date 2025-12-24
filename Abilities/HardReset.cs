@@ -31,50 +31,59 @@ namespace MLPCPCK_utils.Abilities
             return ability = abil.ability;
         }
 
-        private List<PlayableCard> _cards = new List<PlayableCard>();
-        private List<Transform> _damageWeights;
+        private BoardState state;
 
         public override bool RespondsToResolveOnBoard() => true;
         public override IEnumerator OnResolveOnBoard() {
-            List<CardSlot> slots = Singleton<BoardManager>.Instance.AllSlots; // playerSlots + opponentSlots
-            PlayableCard component;
-            foreach (var slot in slots) {
-                PlayableCard card = slot.Card;
-                
-                component = UnityEngine.Object.Instantiate<GameObject>(Singleton<CardSpawner>.Instance.PlayableCardPrefab).GetComponent<PlayableCard>();
-                component.SetInfo(card.Info);
-                component.Slot = slot;
-                AccessTools.Field(typeof(PlayableCard), "OpponentCard").SetValue(component, card.OpponentCard); // todo: !
-                component.TemporaryMods = new List<CardModificationInfo>(card.TemporaryMods);
-                _cards.Add(component);
-                
-                /*if (i > 3) { // queue
-                    card = Singleton<BoardManager>.Instance.GetCardQueuedForSlot(_slots[i]);
-                    if (card == null) continue;
-                    component = UnityEngine.Object.Instantiate<GameObject>(Singleton<CardSpawner>.Instance.PlayableCardPrefab).GetComponent<PlayableCard>();
-                    component.SetInfo(card.Info);
-                    component.TemporaryMods = new List<CardModificationInfo>(card.TemporaryMods);
-                    component.QueuedSlot = card.QueuedSlot;
-
-                    cards[i+4] = component;
-                }*/
-            }
-
-            Opponent self = TurnManager.Instance.Opponent;
-            self.Queue.ForEach(x => {
-                if (x == null) return;
-                component = UnityEngine.Object.Instantiate<GameObject>(Singleton<CardSpawner>.Instance.PlayableCardPrefab).GetComponent<PlayableCard>();
-                component.SetInfo(x.Info);
-                component.QueuedSlot = x.QueuedSlot;
-                AccessTools.Field(typeof(PlayableCard), "OpponentCard").SetValue(component, false); // todo: !
-                component.TemporaryMods = new List<CardModificationInfo>(x.TemporaryMods);
-                _cards.Add(component);
-            });
-            
-            _damageWeights = (List<Transform>)AccessTools.Field(typeof(CombatPhaseManager3D), "damageWeights").GetValue(Singleton<CombatPhaseManager3D>.Instance);
-            
-            Plugin.Log.LogError($"[{nameof(HardReset)}] {nameof(_cards)}: {_cards.Count}; {nameof(_damageWeights)}: {_damageWeights.Count}.");
+            state = BoardState.GenerateFromCurrentBoard();
             yield break;
         }
+        
+        public override bool RespondsToDie(bool wasSacrifice, PlayableCard killer) => !wasSacrifice;
+        public override IEnumerator OnDie(bool wasSacrifice, PlayableCard killer) {
+            RevertToSnapshot();
+            Singleton<UIManager>.Instance.Effects.GetEffect<ScreenGlitchEffect>().SetIntensity(1f, 0.4f);
+            yield return new WaitForSeconds(1f);
+        }
+        
+        private void RevertToSnapshot() {
+            Singleton<LifeManager>.Instance.SetNumWeightsImmediate(state.playerDamage, state.opponentDamage);
+            
+            foreach (CardSlot allSlot in Singleton<BoardManager>.Instance.AllSlots) {
+                if (allSlot.Card == null) continue;
+                PlayableCard card = allSlot.Card;
+                allSlot.Card.UnassignFromSlot();
+                UnityEngine.Object.Destroy(card.gameObject);
+            }
+
+            var applySlotStates = AccessTools.Method(typeof(PhotographerSnapshotManager), "ApplySlotStates");
+            var obj = new PhotographerSnapshotManager(); // it's okay!
+            
+            applySlotStates.Invoke(obj, new [] {(object)state.playerSlots, Singleton<BoardManager>.Instance.PlayerSlotsCopy});
+            //ApplySlotStates(state.playerSlots, Singleton<BoardManager>.Instance.PlayerSlotsCopy);
+            
+            applySlotStates.Invoke(obj, new [] {(object)state.opponentSlots, Singleton<BoardManager>.Instance.OpponentSlotsCopy});
+            //ApplySlotStates(state.opponentSlots, Singleton<BoardManager>.Instance.OpponentSlotsCopy);
+        }
+
+        /*private void ApplySlotStates(List<BoardState.SlotState> slotStates, List<CardSlot> actualSlots)
+        {
+            for (int index = 0; index < slotStates.Count; ++index)
+            {
+                if (slotStates[index].card != null)
+                    this.StartCoroutine(this.ApplySlotState(slotStates[index], actualSlots[index]));
+            }
+        }
+        
+        private IEnumerator ApplySlotState(BoardState.SlotState slotState, CardSlot slot)
+        {
+            yield return (object) Singleton<BoardManager>.Instance.CreateCardInSlot(slotState.card.info, slot, 0.0f, false);
+            PlayableCard card = slot.Card;
+            (card.Anim as DiskCardAnimationController).Expand(true);
+            card.TemporaryMods = new List<CardModificationInfo>((IEnumerable<CardModificationInfo>) slotState.card.temporaryMods);
+            card.Status = new PlayableCardStatus(slotState.card.status);
+            card.OnStatsChanged();
+            Singleton<ResourcesManager>.Instance.ForceGemsUpdate();
+        }*/
     }
 }
