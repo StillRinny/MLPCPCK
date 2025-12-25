@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using DiskCardGame;
 using EasyFeedback.APIs;
 using HarmonyLib;
 using InscryptionAPI.Card;
 using InscryptionAPI.Helpers;
 using InscryptionAPI.Helpers.Extensions;
+using InscryptionAPI.Triggers;
+using Mono.Cecil;
+using MonoMod.Utils;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -32,6 +36,28 @@ namespace MLPCPCK_utils.Abilities
         }
 
         private BoardState state;
+        private bool flag;
+
+        private void Start() {
+            if (Card.OnBoard) state = BoardState.GenerateFromCurrentBoard();
+        }
+        
+        public bool RespondsToModifyDamageTaken(PlayableCard target, int damage, PlayableCard attacker, int originalDamage) => 
+            target == Card && !Card.HasShield();
+        public int OnModifyDamageTaken(PlayableCard target, int damage, PlayableCard attacker, int originalDamage)
+        {
+            if ((!attacker && (target.Health <= damage || attacker.HasAbility(Ability.Deathtouch)) &&
+                 !attacker.HasSpecialAbility(SpecialTriggeredAbility.GiantCard))
+                || target.Health <= damage)
+            {
+                flag = true;
+                Card.RenderInfo.hiddenHealth = true;
+                Card.RenderCard();
+                return 0;
+            }
+            else return damage;
+        }
+        public int TriggerPriority(PlayableCard target, int damage, PlayableCard attacker) => int.MaxValue;
 
         public override bool RespondsToResolveOnBoard() => true;
         public override IEnumerator OnResolveOnBoard() {
@@ -39,11 +65,19 @@ namespace MLPCPCK_utils.Abilities
             yield break;
         }
         
-        public override bool RespondsToDie(bool wasSacrifice, PlayableCard killer) => !wasSacrifice;
-        public override IEnumerator OnDie(bool wasSacrifice, PlayableCard killer) {
+        public override bool RespondsToPreDeathAnimation(bool wasSacrifice) => !wasSacrifice; // Emergency
+        public override IEnumerator OnPreDeathAnimation(bool wasSacrifice) {
             RevertToSnapshot();
             Singleton<UIManager>.Instance.Effects.GetEffect<ScreenGlitchEffect>().SetIntensity(1f, 0.4f);
             yield return new WaitForSeconds(1f);
+        }
+        
+        public override bool RespondsToTurnEnd(bool isPlayerTurn) => !isPlayerTurn && flag;
+
+        public override IEnumerator OnTurnEnd(bool isPlayerTurn) {
+            RevertToSnapshot();
+            Singleton<UIManager>.Instance.Effects.GetEffect<ScreenGlitchEffect>().SetIntensity(1f, 0.4f);
+            yield break;
         }
         
         private void RevertToSnapshot() {
@@ -56,26 +90,38 @@ namespace MLPCPCK_utils.Abilities
                 UnityEngine.Object.Destroy(card.gameObject);
             }
 
-            var applySlotStates = AccessTools.Method(typeof(PhotographerSnapshotManager), "ApplySlotStates");
+            var applySlotState = AccessTools.Method(typeof(PhotographerSnapshotManager), "ApplySlotState");
             var obj = new PhotographerSnapshotManager(); // it's okay!
+
+            var slots = state.playerSlots;
+            var actualSlots = Singleton<BoardManager>.Instance.PlayerSlotsCopy;
+            for (int index = 0; index < slots.Count; ++index) {
+                if (slots[index].card != null) 
+                    StartCoroutine((IEnumerator)applySlotState.Invoke(obj, new [] { (object)slots[index], actualSlots[index] }));
+            }
             
-            applySlotStates.Invoke(obj, new [] {(object)state.playerSlots, Singleton<BoardManager>.Instance.PlayerSlotsCopy});
+            slots = state.opponentSlots;
+            actualSlots = Singleton<BoardManager>.Instance.OpponentSlotsCopy;
+            for (int index = 0; index < slots.Count; ++index) {
+                if (slots[index].card != null) 
+                    StartCoroutine((IEnumerator)applySlotState.Invoke(obj, new [] { (object)slots[index], actualSlots[index] }));
+            }
+            
+            //applySlotStates.Invoke(obj, new [] {(object)state.playerSlots, Singleton<BoardManager>.Instance.PlayerSlotsCopy});
             //ApplySlotStates(state.playerSlots, Singleton<BoardManager>.Instance.PlayerSlotsCopy);
             
-            applySlotStates.Invoke(obj, new [] {(object)state.opponentSlots, Singleton<BoardManager>.Instance.OpponentSlotsCopy});
+            //applySlotStates.Invoke(obj, new [] {(object)state.opponentSlots, Singleton<BoardManager>.Instance.OpponentSlotsCopy});
             //ApplySlotStates(state.opponentSlots, Singleton<BoardManager>.Instance.OpponentSlotsCopy);
         }
 
-        /*private void ApplySlotStates(List<BoardState.SlotState> slotStates, List<CardSlot> actualSlots)
-        {
-            for (int index = 0; index < slotStates.Count; ++index)
-            {
+        /*private void ApplySlotStates(List<BoardState.SlotState> slotStates, List<CardSlot> actualSlots) {
+            for (int index = 0; index < slotStates.Count; ++index) {
                 if (slotStates[index].card != null)
                     this.StartCoroutine(this.ApplySlotState(slotStates[index], actualSlots[index]));
             }
-        }
+        }*/
         
-        private IEnumerator ApplySlotState(BoardState.SlotState slotState, CardSlot slot)
+        /*private IEnumerator ApplySlotState(BoardState.SlotState slotState, CardSlot slot)
         {
             yield return (object) Singleton<BoardManager>.Instance.CreateCardInSlot(slotState.card.info, slot, 0.0f, false);
             PlayableCard card = slot.Card;
