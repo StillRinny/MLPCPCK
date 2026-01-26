@@ -18,8 +18,8 @@ namespace MLPCPCK_utils {
             harmony.PatchAll();
             Logger.LogInfo($"Patched methods: {harmony.GetPatchedMethods().Count()}");
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} loaded!");
-
             CandyCurse.AddAbility();
+            Forgettable.AddAbility();
             //Swarm.AddAbility();
             HardReset.AddAbility();
         }
@@ -27,8 +27,9 @@ namespace MLPCPCK_utils {
 
     public static class MLPAbility {
         public static readonly Ability CandyCurse = Abilities.CandyCurse.AddAbility(); // JLDR reference: MLPAbility.Candy Curse
+        public static readonly Ability Forgettable = Abilities.Forgettable.AddAbility(); // JLDR reference: MLPAbility.Forgettable
         public static readonly Ability HardReset = Abilities.HardReset.AddAbility(); // JLDR reference: MLPAbility.Hard Reset
-        public static readonly Ability Swarm = Abilities.Swarm.AddAbility(); // JLDR reference: MLPAbility.Swarm
+        //public static readonly Ability Swarm = Abilities.Swarm.AddAbility(); // JLDR reference: MLPAbility.Swarm
     }
 
     public static class PluginInfo {

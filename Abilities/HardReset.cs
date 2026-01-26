@@ -8,6 +8,7 @@ using HarmonyLib;
 using InscryptionAPI.Card;
 using InscryptionAPI.Helpers;
 using InscryptionAPI.Helpers.Extensions;
+using InscryptionAPI.Sound;
 using InscryptionAPI.Triggers;
 using Mono.Cecil;
 using MonoMod.Utils;
@@ -37,6 +38,7 @@ namespace MLPCPCK_utils.Abilities
 
         private BoardState _state;
         private bool _resetFlag;
+        private AudioSource soundLoop;
 
         private void Start() { // If Ability added after Card Resolve
             if (Card.OnBoard) _state = BoardState.GenerateFromCurrentBoard();
@@ -52,14 +54,21 @@ namespace MLPCPCK_utils.Abilities
             target == Card && !Card.HasShield();
         public int OnModifyDamageTaken(PlayableCard target, int damage, PlayableCard attacker, int originalDamage) {
             if (target.Health > damage && (attacker == null || !attacker.HasAbility(Ability.Deathtouch))) return damage;
+            if (!_resetFlag && Singleton<TurnManager>.Instance.PlayerPhase != TurnManager.PlayerTurnPhase.Main) {
+                soundLoop = PlayAudioLooped("clock-slow.ogg");
+                Card.RenderInfo.hiddenAttack = true;
+                Card.RenderInfo.hiddenHealth = true;
+                Card.AttackedThisTurn = true; // Prevent Attack
+                Card.RenderCard();
+            }
             _resetFlag = true;
-            Card.RenderInfo.hiddenAttack = true;
-            Card.RenderInfo.hiddenHealth = true;
-            Card.AttackedThisTurn = true; // Prevent Attack
-            Card.RenderCard();
             return 0;
         }
         public int TriggerPriority(PlayableCard target, int damage, PlayableCard attacker) => int.MaxValue;
+        
+        // To Make ability works immediately if is not Combat
+        public override bool RespondsToTakeDamage(PlayableCard source) => _resetFlag && Singleton<TurnManager>.Instance.PlayerPhase == TurnManager.PlayerTurnPhase.Main;
+        public override IEnumerator OnTakeDamage(PlayableCard source) => RevertToSnapshot();
         
         public override bool RespondsToPreDeathAnimation(bool wasSacrifice) => !wasSacrifice; // Emergency
         public override IEnumerator OnPreDeathAnimation(bool _) => RevertToSnapshot();
@@ -71,6 +80,7 @@ namespace MLPCPCK_utils.Abilities
         public IEnumerator OnPreScalesChanged(int _, bool toPlayer, int __, bool ___) => RevertToSnapshot();
         
         private IEnumerator RevertToSnapshot() {
+            if (soundLoop != null) soundLoop.PlayScheduled(2);
             Singleton<LifeManager>.Instance.SetNumWeightsImmediate(_state.playerDamage, _state.opponentDamage);
             
             foreach (CardSlot allSlot in Singleton<BoardManager>.Instance.AllSlots) {
@@ -85,16 +95,16 @@ namespace MLPCPCK_utils.Abilities
 
             var slots = _state.playerSlots;
             var actualSlots = Singleton<BoardManager>.Instance.PlayerSlotsCopy;
-            for (int index = 0; index < slots.Count; ++index) {
-                if (slots[index].card != null) 
-                    StartCoroutine((IEnumerator)applySlotState.Invoke(obj, new [] { (object)slots[index], actualSlots[index] }));
+            for (int i = 0; i < slots.Count; ++i) {
+                if (slots[i].card != null) 
+                    StartCoroutine((IEnumerator)applySlotState.Invoke(obj, new [] { (object)slots[i], actualSlots[i] }));
             }
             
             slots = _state.opponentSlots;
             actualSlots = Singleton<BoardManager>.Instance.OpponentSlotsCopy;
-            for (int index = 0; index < slots.Count; ++index) {
-                if (slots[index].card != null) 
-                    StartCoroutine((IEnumerator)applySlotState.Invoke(obj, new [] { (object)slots[index], actualSlots[index] }));
+            for (int i = 0; i < slots.Count; ++i) {
+                if (slots[i].card != null) 
+                    StartCoroutine((IEnumerator)applySlotState.Invoke(obj, new [] { (object)slots[i], actualSlots[i] }));
             }
             
             //applySlotStates.Invoke(obj, new [] {(object)state.playerSlots, Singleton<BoardManager>.Instance.PlayerSlotsCopy});
@@ -124,5 +134,39 @@ namespace MLPCPCK_utils.Abilities
             card.OnStatsChanged();
             Singleton<ResourcesManager>.Instance.ForceGemsUpdate();
         }*/
+        
+        //
+        // PONYSCRYPRION AUDIO HELPERS
+        //
+        public static AudioSource PlayAudioSingle(string filePath, float volume = 0.5f) {
+            AudioClip clip = SoundManager.LoadAudioClip(PluginInfo.PLUGIN_GUID, filePath);
+            AudioSource source = InstantiateAudioObject(clip, Vector3.zero, volume, false);
+            source.spatialBlend = 0.0f;
+            return source;
+        }
+
+        public static AudioSource PlayAudioLooped(string filePath, float volume = 0.5f) {
+            AudioClip clip = SoundManager.LoadAudioClip(PluginInfo.PLUGIN_GUID, filePath);
+            AudioSource source = InstantiateAudioObject(clip, Vector3.zero, volume, true);
+            source.spatialBlend = 0.0f;
+            return source;
+        }
+        
+        private static AudioSource InstantiateAudioObject(AudioClip clip, Vector3 pos, float volume, bool looping) // Своровано из AudioController, где этот метод приватный. Ещё там список SFX приватный. Я хз, может стоит пропатчить его и сделать там setter?
+        {
+            GameObject gameObject = new GameObject("Audio_" + clip.name);
+            gameObject.transform.position = pos;
+            AudioSource audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.clip = clip;
+            audioSource.outputAudioMixerGroup = AudioController.Instance.GetMixerGroup(MixerGroup.None, true);
+            audioSource.volume = volume;
+            audioSource.spatialBlend = 0.75f;
+            audioSource.Play();
+            if (looping)
+                audioSource.loop = true;
+            else
+                UnityEngine.Object.Destroy((UnityEngine.Object) gameObject, clip.length * 3f);
+            return audioSource;
+        }
     }
 }
