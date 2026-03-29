@@ -8,9 +8,9 @@ using UnityEngine;
 namespace MLPCPCK_utils.Abilities
 {
     public class Swarm : AbilityBehaviour {
-        private static Ability ability;
+        internal static Ability ability;
         public override Ability Ability => ability;
-        public static Ability AddAbility() {
+        public static void AddAbility() {
             AbilityInfo abil = AbilityManager.New(nameof(MLPAbility),
                 "Swarms",
                 "This sigil will place a random changeling card on either side of it's bearer once placed.",
@@ -22,7 +22,7 @@ namespace MLPCPCK_utils.Abilities
             abil.canStack = false;
             abil.opponentUsable = false;
             abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
-            return ability = abil.ability;
+            ability = abil.ability;
         }
         private readonly string[] _cardsToPlace = { "MLPCPCK_Changeling", "MLPCPCK_Changeling_Drone", "MLPCPCK_Changeling_Brute", "MLPCPCK_Changeling_Scout" };
 

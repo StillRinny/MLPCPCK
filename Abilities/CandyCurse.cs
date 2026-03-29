@@ -8,10 +8,10 @@ namespace MLPCPCK_utils.Abilities
 {
     public class CandyCurse : AbilityBehaviour
     {
-        private static Ability ability;
+        internal static Ability ability;
         public override Ability Ability => ability;
 
-        public static Ability AddAbility() {
+        public static void AddAbility() {
             AbilityInfo abil = AbilityManager.New(nameof(MLPAbility),
             "Candy Curse",
         "This sigil permanently grants 1 attack per card killed by it's bearer. " +
@@ -27,7 +27,7 @@ namespace MLPCPCK_utils.Abilities
             abil.canStack = false;
             abil.opponentUsable = false;
             abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
-            return ability = abil.ability;
+            ability = abil.ability;
         }
 
         /*/
@@ -45,7 +45,7 @@ namespace MLPCPCK_utils.Abilities
                 _curse = new CardModificationInfo { singletonId = ID };
                 RunState.Run.playerDeck.ModifyCard(Card.Info, _curse);
             }
-            UpdateAbilities();
+            //UpdateAbilities(); // Needed only if other abilities added. AllStrike and MadeOfStone are Passive
         }
 
         // OnKill
@@ -79,7 +79,7 @@ namespace MLPCPCK_utils.Abilities
         // OnAttackEnded
         public override bool RespondsToAttackEnded() => Card.OnBoard;
         public override IEnumerator OnAttackEnded() {
-            UpdateAbilities(); // Updating abilities taken from Curse
+            //UpdateAbilities(); // Needed only if other abilities added. AllStrike and MadeOfStone are Passive
             yield break;
         }
 
@@ -93,6 +93,7 @@ namespace MLPCPCK_utils.Abilities
             if (sabil.Count == abil.Count) return;
 
             _curse.abilities = abil;
+            //Card.UpdateAbilities(abil); // Needed only if other abilities added. AllStrike and MadeOfStone are Passive
             Card.OnStatsChanged();
             Card.Anim.PlayTransformAnimation();
         }

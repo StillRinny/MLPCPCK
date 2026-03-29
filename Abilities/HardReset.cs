@@ -18,10 +18,10 @@ using UnityEngine;
 namespace MLPCPCK_utils.Abilities
 {
     public class HardReset : AbilityBehaviour, IModifyDamageTaken, IOnPreScalesChanged, IOnPreScalesChangedRef {
-        private static Ability ability;
+        internal static Ability ability;
         public override Ability Ability => ability;
 
-        public static Ability AddAbility() {
+        public static void AddAbility() {
             AbilityInfo abil = AbilityManager.New(nameof(MLPAbility),
                 "Hard Reset",
                 "* Awesome Description *",
@@ -33,7 +33,7 @@ namespace MLPCPCK_utils.Abilities
             abil.canStack = false;
             abil.opponentUsable = false;
             abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
-            return ability = abil.ability;
+            ability = abil.ability;
         }
 
         private BoardState _state;

@@ -4,6 +4,7 @@ using BepInEx.Logging;
 using DiskCardGame;
 using HarmonyLib;
 using MLPCPCK_utils.Abilities;
+using MLPCPCK_utils.SpecialAbilities;
 
 namespace MLPCPCK_utils {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
@@ -20,16 +21,32 @@ namespace MLPCPCK_utils {
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} loaded!");
             CandyCurse.AddAbility();
             Forgettable.AddAbility();
-            //Swarm.AddAbility();
             HardReset.AddAbility();
+            //Swarm.AddAbility();
+            BlankSpecialBehaviour.AddAbility();
+            SurpriseSpecialBehaviour.AddAbility();
         }
     }
 
-    public static class MLPAbility {
-        public static readonly Ability CandyCurse = Abilities.CandyCurse.AddAbility(); // JLDR reference: MLPAbility.Candy Curse
-        public static readonly Ability Forgettable = Abilities.Forgettable.AddAbility(); // JLDR reference: MLPAbility.Forgettable
-        public static readonly Ability HardReset = Abilities.HardReset.AddAbility(); // JLDR reference: MLPAbility.Hard Reset
-        //public static readonly Ability Swarm = Abilities.Swarm.AddAbility(); // JLDR reference: MLPAbility.Swarm
+    public abstract class MLPAbility {
+        public static Ability CandyCurse => Abilities.CandyCurse.ability; // JLDR reference: MLPAbility.Candy Curse
+        public static Ability Forgettable => Abilities.Forgettable.ability; // JLDR reference: MLPAbility.Forgettable
+        public static Ability HardReset => Abilities.HardReset.ability; // JLDR reference: MLPAbility.Hard Reset
+        //public static Ability Swarm = Abilities.Swarm.ability; // JLDR reference: MLPAbility.Swarm
+    }
+
+    public abstract class MLPSpecial {
+        public static SpecialTriggeredAbility BlackFlank => BlankSpecialBehaviour.ability; // JLDR reference: MLPSpecial_BlankFlank
+        public static SpecialTriggeredAbility Surprise => SurpriseSpecialBehaviour.ability; // JLDR reference: MLPSpecial_Surprise
+    }
+
+    public abstract class RandomHelper // Update and add it to lib
+    {
+        private static int? mainValue = null;
+        public static int GetAdder() {
+            if (mainValue == null) mainValue = SaveManager.SaveFile.GetCurrentRandomSeed() % 2;
+            return (int)++mainValue;
+        }
     }
 
     public static class PluginInfo {
@@ -37,6 +54,6 @@ namespace MLPCPCK_utils {
 
         public const string PLUGIN_NAME = "MLP:FIM CardPack utils";
 
-        public const string PLUGIN_VERSION = "0.2.5.0";
+        public const string PLUGIN_VERSION = "0.4.2";
     }
 }
