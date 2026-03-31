@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DiskCardGame;
 using InscryptionAPI.Card;
 using InscryptionAPI.Helpers;
+using PonyLib.CardsHelpers;
 
 namespace MLPCPCK_utils.Abilities
 {
@@ -27,6 +28,7 @@ namespace MLPCPCK_utils.Abilities
             abil.canStack = false;
             abil.opponentUsable = false;
             abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
+            abil.SetNotMergeable();
             ability = abil.ability;
         }
 

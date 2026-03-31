@@ -37,8 +37,6 @@ namespace MLPCPCK_utils.SpecialAbilities
             SurpriseCards.Add(PlayableCard, TurnManager.Instance.TurnNumber);
             PlayableCard.UnassignFromSlot();
             PlayableCard.Slot = null;
-            //Transform transform = PlayableCard.gameObject.transform; // Old solution
-            //transform.position += Vector3.up * -10f;
             PlayableCard.gameObject.SetActive(false);
         }
     }

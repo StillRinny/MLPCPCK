@@ -56,17 +56,16 @@ namespace MLPCPCK_utils.Tests
             anim.SetBool(Active, Pressable);
         }
         
-        protected override void OnCursorSelectStart() { // Pressed
+        /*protected override void OnCursorSelectStart() { // Pressed
             
         }
 
         protected override void OnCursorEnter() { // Hover
-            Plugin.Log.LogError("Cum!");
             ShowState(HighlightedInteractable.State.Highlighted);
         }
 
         protected override void OnCursorExit() { // Hover over
             ShowState(HighlightedInteractable.State.Interactable);
-        }
+        }*/
     }
 }

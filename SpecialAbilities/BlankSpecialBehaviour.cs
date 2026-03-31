@@ -53,9 +53,10 @@ namespace MLPCPCK_utils.SpecialAbilities
                     else if (mainQueued == null && secondaryQueued == null) yield break;
 
                     Singleton<ViewManager>.Instance.SwitchToView(View.OpponentQueue);
-                    
-                    var method = AccessTools.Method(typeof(Opponent), "CreateCard");
-                    PlayableCard card = (PlayableCard)method.Invoke(self, new object[] { cardToDraw });
+
+                    PlayableCard card = self.CreateCard(cardToDraw);
+                        //var method = AccessTools.Method(typeof(Opponent), "CreateCard");
+                        //PlayableCard card = (PlayableCard)method.Invoke(self, new object[] { cardToDraw });
                     card.AddTemporaryMod(costMod);
                     Singleton<BoardManager>.Instance.QueueCardForSlot(card, mainQueued, 0.25f);
                     self.Queue.Add(card);

@@ -67,12 +67,14 @@ namespace MLPCPCK_utils.Patches
                 }
 
                 AccessTools.Property(typeof(CombatPhaseManager), "DamageDealtThisPhase").SetValue(__instance.CombatPhaseManager, 0); // must be 0
-                var method = AccessTools.Method(typeof(CombatPhaseManager), "SlotAttackSequence"); // todo: DELETE!!!
+                    //__instance.CombatPhaseManager.DamageDealtThisPhase = 0; // ^ private set ^ todo: << #1
+
                 // Make Card attack slots "x" times
-                for (int i = 0; i < attackCount; i++)
-                {
+                //var method = AccessTools.Method(typeof(CombatPhaseManager), "SlotAttackSequence"); // todo: #2
+                for (int i = 0; i < attackCount; i++) {
                     if (slot.Card == null) continue;
-                    yield return method.Invoke(__instance.CombatPhaseManager, new[] { slot });
+                    yield return __instance.CombatPhaseManager.SlotAttackSequence(slot); // todo << #2
+                        //yield return method.Invoke(__instance.CombatPhaseManager, new[] { slot }); // todo: #2
                     yield return new WaitForSeconds(0.1f);
                 }
                 
@@ -82,7 +84,8 @@ namespace MLPCPCK_utils.Patches
                     var specialSequencer = __instance.SpecialSequencer;
                     
                     yield return new WaitForSeconds(0.4f);
-                    yield return AccessTools.Method(typeof(CombatPhaseManager), "VisualizeDamageMovingToScales").Invoke(combatPhaseManager, new object[] { playerIsAttacker });
+                    yield return combatPhaseManager.VisualizeDamageMovingToScales(playerIsAttacker); // vvv todo: << #3
+                        //yield return AccessTools.Method(typeof(CombatPhaseManager), "VisualizeDamageMovingToScales").Invoke(combatPhaseManager, new object[] { playerIsAttacker });
                     int excessDamage = 0;
                     if (playerIsAttacker) {
                         excessDamage = Singleton<LifeManager>.Instance.Balance + combatPhaseManager.DamageDealtThisPhase - 5;
@@ -100,7 +103,8 @@ namespace MLPCPCK_utils.Patches
                     {
                         yield return Singleton<TurnManager>.Instance.Opponent.TryRevokeSurrender();
                         RunState.Run.currency += excessDamage;
-                        yield return AccessTools.Method(typeof(CombatPhaseManager), "VisualizeExcessLethalDamage").Invoke(combatPhaseManager, new object[] { excessDamage, specialSequencer });
+                        yield return combatPhaseManager.VisualizeExcessLethalDamage(excessDamage, specialSequencer); // todo: << #4
+                            //yield return AccessTools.Method(typeof(CombatPhaseManager), "VisualizeExcessLethalDamage").Invoke(combatPhaseManager, new object[] { excessDamage, specialSequencer });
                     }
                 }
             }
