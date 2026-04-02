@@ -3,6 +3,7 @@ using BepInEx;
 using BepInEx.Logging;
 using DiskCardGame;
 using HarmonyLib;
+using InscryptionAPI.Guid;
 using MLPCPCK_utils.Abilities;
 using MLPCPCK_utils.SpecialAbilities;
 
@@ -40,6 +41,10 @@ namespace MLPCPCK_utils {
         public static SpecialTriggeredAbility Surprise => SurpriseSpecialBehaviour.ability; // JLDR reference: MLPSpecial_Surprise
     }
 
+    public abstract class MLPTrait {
+        public static readonly Trait Changeling = GuidManager.GetEnumValue<Trait>(nameof(MLPTrait), nameof(Changeling));
+    }
+
     public abstract class RandomHelper // Update and add it to lib
     {
         private static int? mainValue = null;
@@ -54,6 +59,6 @@ namespace MLPCPCK_utils {
 
         public const string PLUGIN_NAME = "MLP:FIM CardPack utils";
 
-        public const string PLUGIN_VERSION = "0.4.4";
+        public const string PLUGIN_VERSION = "0.4.5";
     }
 }
