@@ -14,7 +14,7 @@ namespace MLPCPCK_utils.Abilities
         public override Ability Ability => ability;
         public static void AddAbility() {
             AbilityInfo abil = AbilityManager.New(nameof(MLPAbility),
-                "Swarms",
+                "Swarm",
                 "This sigil will place a random changeling card on either side of it's bearer once placed.",
                 typeof(Swarm),
                 "swarmsigilmlp.png"
@@ -30,7 +30,7 @@ namespace MLPCPCK_utils.Abilities
         private readonly string[] _cardsToPlace = { "MLPCPCK_Changeling", "MLPCPCK_Changeling_Drone", "MLPCPCK_Changeling_Brute", "MLPCPCK_Changeling_Scout" };
 
         // Buff allied Changelings attack 
-        public int GetPassiveAttackBuff(PlayableCard target) => target.HasTrait(MLPTrait.Changeling) && target.IsPlayerCard() == Card.IsPlayerCard() ? 1 : 0;
+        public int GetPassiveAttackBuff(PlayableCard target) => target.HasTrait(MLPTrait.Changeling) && target.IsPlayerCard() == Card.IsPlayerCard() && Card.OnBoard ? 1 : 0;
         
         // OnResolve
         public override bool RespondsToResolveOnBoard() => true; // No simple condition.

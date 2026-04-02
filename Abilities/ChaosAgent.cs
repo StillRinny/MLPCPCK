@@ -26,7 +26,7 @@ namespace MLPCPCK_utils.Abilities
             abil.SetAbilityRedirect("Submerge", Ability.Submerge, GameColors.Instance.seafoam);
             abil.SetPixelAbilityIcon(TextureHelper.GetImageAsTexture("chaossigilmlpsmall.png"));
             abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
-            abil.powerLevel = 1;
+            abil.powerLevel = 2;
             abil.canStack = false;
             abil.opponentUsable = false;
             ability = abil.ability;
@@ -35,17 +35,27 @@ namespace MLPCPCK_utils.Abilities
         private const string ID = "-ch.ab"; // ID needed to prevent secondary mod adding
         private readonly CardModificationInfo _chaosStrategy = new CardModificationInfo() {
             singletonId = ID, 
-            abilities = new List<Ability>(1) { Ability.None }, 
-            negateAbilities = new List<Ability>(2) { Ability.Flying, Ability.Submerge }
+            abilities = new List<Ability>(1) { Ability.TriStrike }, // TriStrike is placeholder, cuz Ability.None makes many bugs
+            negateAbilities = new List<Ability>(5) { Ability.Flying, Ability.Submerge, Ability.Morsel, Ability.BeesOnHit, Ability.TriStrike }
         };
         
-        private enum Strategy {
+        private enum Strategy { // перенести всю нагрузку на список negateAbilities? 
             Flying,
-            Swimming,
+            Submerge,
+            Morsel,
+            BeesOnHit,
             Dogging,
             None
         }
         private Strategy _currentStrategy = Strategy.None;
+
+        private static Texture2D[] _icons = {
+            TextureHelper.GetImageAsTexture("chaos.flying.sigilmlp.png"),
+            TextureHelper.GetImageAsTexture($"chaos.submerge.sigilmlp.png"),
+            TextureHelper.GetImageAsTexture($"chaos.morsel.sigilmlp.png"),
+            TextureHelper.GetImageAsTexture($"chaos.beehive.sigilmlp.png"),
+            TextureHelper.GetImageAsTexture($"chaos.dogging.sigilmlp.png"),
+        };
 
         private void Start() { // Fast mod injection
             Card.AddTemporaryMod(_chaosStrategy);
@@ -67,36 +77,54 @@ namespace MLPCPCK_utils.Abilities
 
         private void ChangeStrategy() {
             // CleanUp previous Strategy
+            _chaosStrategy.attackAdjustment = 0; // todo: Delete id Flying and Beehive attack Debuff removed
+            
             var abil = _chaosStrategy.abilities[0];
-            if (abil != Ability.None) {
-                _chaosStrategy.negateAbilities[abil == Ability.Flying ? 0 : 1] = abil;
-                if (abil == Ability.Submerge) Card.TriggerHandler.RemoveAbility(abil);
+            if (_currentStrategy != Strategy.None && _currentStrategy != Strategy.Dogging) {
+                _chaosStrategy.negateAbilities[(int)_currentStrategy] = abil;
                 Card.Status.hiddenAbilities.Remove(abil);
+                if (abil == Ability.Submerge || abil == Ability.Morsel || abil == Ability.BeesOnHit) 
+                    Card.TriggerHandler.RemoveAbility(abil); 
             }
             
             // Take new Strategy
-            List<Strategy> strategies = new List<Strategy> { Strategy.Flying, Strategy.Swimming, Strategy.Dogging };
+            List<Strategy> strategies = new List<Strategy> { Strategy.Flying, Strategy.Submerge, Strategy.Morsel, Strategy.BeesOnHit, Strategy.Dogging };
             strategies.Remove(_currentStrategy);
-            switch (strategies[SeededRandom.Range(0, strategies.Count - 1, GetRandomSeed())]) {
+            switch (strategies[SeededRandom.Range(0, strategies.Count, GetRandomSeed() + Singleton<TurnManager>.Instance.TurnNumber)]) {
                 case Strategy.Flying:
                     _currentStrategy = Strategy.Flying;
                     _chaosStrategy.attackAdjustment = Card.Attack > 2 ? -2 : 0; // todo: Debuff might be erased
                     _chaosStrategy.abilities[0] = Ability.Flying;
                     _chaosStrategy.negateAbilities[0] = Ability.None;
                     Card.Status.hiddenAbilities.Add(Ability.Flying);
+                    Card.TriggerHandler.AddAbility(Ability.Flying);
                     break;
-                case Strategy.Swimming:
-                    _currentStrategy = Strategy.Swimming;
-                    _chaosStrategy.attackAdjustment = 0;
+                case Strategy.Submerge:
+                    _currentStrategy = Strategy.Submerge;
                     _chaosStrategy.abilities[0] = Ability.Submerge;
                     _chaosStrategy.negateAbilities[1] = Ability.None;
                     Card.Status.hiddenAbilities.Add(Ability.Submerge);
                     Card.TriggerHandler.AddAbility(Ability.Submerge);
                     break;
+                case Strategy.Morsel:
+                    _currentStrategy = Strategy.Morsel;
+                    _chaosStrategy.abilities[0] = Ability.Morsel;
+                    _chaosStrategy.negateAbilities[2] = Ability.None;
+                    Card.Status.hiddenAbilities.Add(Ability.Morsel);
+                    Card.TriggerHandler.AddAbility(Ability.Morsel);
+                    break;
+                case Strategy.BeesOnHit:
+                    _currentStrategy = Strategy.BeesOnHit;
+                    _chaosStrategy.attackAdjustment = Card.Attack > 2 ? -2 : 0; // todo: Debuff might be erased
+                    _chaosStrategy.abilities[0] = Ability.BeesOnHit;
+                    _chaosStrategy.negateAbilities[3] = Ability.None;
+                    Card.Status.hiddenAbilities.Add(Ability.BeesOnHit);
+                    Card.TriggerHandler.AddAbility(Ability.BeesOnHit);
+                    break;
                 case Strategy.Dogging:
                     _currentStrategy = Strategy.Dogging;
                     _chaosStrategy.attackAdjustment = 2;
-                    _chaosStrategy.abilities[0] = Ability.None;
+                    _chaosStrategy.abilities[0] = Ability.TriStrike; // TriStrike is placeholder, cuz Ability.None makes many bugs
                     break;
             }
             UpdateDisplay();
@@ -104,7 +132,7 @@ namespace MLPCPCK_utils.Abilities
         
         private void UpdateDisplay() {
             Card.Anim.LightNegationEffect();
-            Card.RenderInfo.OverrideAbilityIcon(MLPAbility.ChaosAgent, TextureHelper.GetImageAsTexture($"ChaosAgent.{_currentStrategy.ToString()}.sigilmlp.png"));
+            Card.RenderInfo.OverrideAbilityIcon(MLPAbility.ChaosAgent, _icons[(int)_currentStrategy]);
             Card.OnStatsChanged();;
         }
     }

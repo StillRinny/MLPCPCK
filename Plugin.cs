@@ -10,6 +10,7 @@ using MLPCPCK_utils.SpecialAbilities;
 namespace MLPCPCK_utils {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("cyantist.inscryption.api", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("PonyLib")]
 
     public class Plugin : BaseUnityPlugin { 
         private readonly Harmony harmony = new Harmony(PluginInfo.PLUGIN_NAME);
@@ -52,6 +53,6 @@ namespace MLPCPCK_utils {
 
         public const string PLUGIN_NAME = "MLP:FIM CardPack utils";
         
-        public const string PLUGIN_VERSION = "0.5.0";
+        public const string PLUGIN_VERSION = "0.5.2";
     }
 }
