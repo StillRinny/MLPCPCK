@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using DiskCardGame;
 using InscryptionAPI.Card;
 using InscryptionAPI.Helpers;
+using InscryptionAPI.Triggers;
+using PonyLib.CardsHelpers;
 using UnityEngine;
 
 namespace MLPCPCK_utils.Abilities
 {
-    public class Swarm : AbilityBehaviour {
+    public class Swarm : AbilityBehaviour, IPassiveAttackBuff {
         internal static Ability ability;
         public override Ability Ability => ability;
         public static void AddAbility() {
@@ -18,21 +20,29 @@ namespace MLPCPCK_utils.Abilities
                 "swarmsigilmlp.png"
             );
             abil.SetPixelAbilityIcon(TextureHelper.GetImageAsTexture("swarmsigilmlpsmall.png"));
+            abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
+            abil.SetNotMergeable();
             abil.powerLevel = 2;
             abil.canStack = false;
             abil.opponentUsable = false;
-            abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
             ability = abil.ability;
         }
         private readonly string[] _cardsToPlace = { "MLPCPCK_Changeling", "MLPCPCK_Changeling_Drone", "MLPCPCK_Changeling_Brute", "MLPCPCK_Changeling_Scout" };
 
+        // Buff allied Changelings attack 
+        public int GetPassiveAttackBuff(PlayableCard target) => target.HasTrait(MLPTrait.Changeling) && target.IsPlayerCard() == Card.IsPlayerCard() ? 1 : 0;
+        
         // OnResolve
         public override bool RespondsToResolveOnBoard() => true; // No simple condition.
         public override IEnumerator OnResolveOnBoard() {
             bool isPlayerCard = Card.IsPlayerCard(); // not fully used
+            yield return CreateAdjacentCards(isPlayerCard);
+        }
+
+        private IEnumerator CreateAdjacentCards(bool isPlayerCard) {
             List<CardSlot> slots = Singleton<BoardManager>.Instance.GetSlots(isPlayerCard);
             int index = slots.IndexOf(Card.Slot);
-            if(index < 0) yield break; // can be deleted
+            if(index < 0) yield break;
 
             // >> Slots takes and validation | start
             int index2 = index - 1; // Left slot index.
@@ -47,17 +57,12 @@ namespace MLPCPCK_utils.Abilities
             if (!toLeftValid && !toRightValid) yield break;
             // << Slots takes and validation | end
 
-            if (Singleton<ViewManager>.Instance.CurrentView != View.Board) { // Set correct View.
-                yield return new WaitForSeconds(0.2f);
-                Singleton<ViewManager>.Instance.SwitchToView(View.Board);
-                yield return new WaitForSeconds(0.2f);
-            }
             yield return PreSuccessfulTriggerSequence();
 
-            int seed = SaveManager.SaveFile.GetCurrentRandomSeed() + Singleton<BoardManager>.Instance.CardsOnBoard.Count + TurnManager.Instance.TurnNumber;
+            int seed = GetRandomSeed();
             CardInfo cardToPlace = CardLoader.GetCardByName(_cardsToPlace[SeededRandom.Range(0, 3, seed)]); // Max value hand-set as top index of _cardsToPlace. Change if needed.
             if (toLeftValid) yield return Singleton<BoardManager>.Instance.CreateCardInSlot(cardToPlace, toLeft);
-            cardToPlace = CardLoader.GetCardByName(_cardsToPlace[SeededRandom.Range(0, 3, seed)]); // Max value hand-set as top index of _cardsToPlace. Change if needed.
+            cardToPlace = CardLoader.GetCardByName(_cardsToPlace[SeededRandom.Range(0, 3, seed + 50)]); // Max value hand-set as top index of _cardsToPlace. Change if needed.
             if (toRightValid) yield return Singleton<BoardManager>.Instance.CreateCardInSlot(cardToPlace, toRight);
         }
     }

@@ -21,9 +21,10 @@ namespace MLPCPCK_utils {
             Logger.LogInfo($"Patched methods: {harmony.GetPatchedMethods().Count()}");
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} loaded!");
             CandyCurse.AddAbility();
+            ChaosAgent.AddAbility();
             Forgettable.AddAbility();
             HardReset.AddAbility();
-            //Swarm.AddAbility();
+            Swarm.AddAbility();
             BlankSpecialBehaviour.AddAbility();
             SurpriseSpecialBehaviour.AddAbility();
         }
@@ -31,9 +32,10 @@ namespace MLPCPCK_utils {
 
     public abstract class MLPAbility {
         public static Ability CandyCurse => Abilities.CandyCurse.ability; // JLDR reference: MLPAbility.Candy Curse
+        public static Ability ChaosAgent => Abilities.ChaosAgent.ability; // JLDR reference: MLPAbility.Chaos Agent
         public static Ability Forgettable => Abilities.Forgettable.ability; // JLDR reference: MLPAbility.Forgettable
         public static Ability HardReset => Abilities.HardReset.ability; // JLDR reference: MLPAbility.Hard Reset
-        //public static Ability Swarm = Abilities.Swarm.ability; // JLDR reference: MLPAbility.Swarm
+        public static Ability Swarm = Abilities.Swarm.ability; // JLDR reference: MLPAbility.Swarm
     }
 
     public abstract class MLPSpecial {
@@ -42,23 +44,14 @@ namespace MLPCPCK_utils {
     }
 
     public abstract class MLPTrait {
-        public static readonly Trait Changeling = GuidManager.GetEnumValue<Trait>(nameof(MLPTrait), nameof(Changeling));
+        public static readonly Trait Changeling = GuidManager.GetEnumValue<Trait>(nameof(MLPTrait), nameof(Changeling)); // JLDR reference: MLPTrait_Changeling
     }
-
-    public abstract class RandomHelper // Update and add it to lib
-    {
-        private static int? mainValue = null;
-        public static int GetAdder() {
-            if (mainValue == null) mainValue = SaveManager.SaveFile.GetCurrentRandomSeed() % 2;
-            return (int)++mainValue;
-        }
-    }
-
+    
     public static class PluginInfo {
         public const string PLUGIN_GUID = "MLPCPCK-U";
 
         public const string PLUGIN_NAME = "MLP:FIM CardPack utils";
-
-        public const string PLUGIN_VERSION = "0.4.5";
+        
+        public const string PLUGIN_VERSION = "0.5.0";
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DiskCardGame;
 using InscryptionAPI.Card;
 using InscryptionAPI.Helpers;
+using InscryptionAPI.RuleBook;
 using PonyLib.CardsHelpers;
 
 namespace MLPCPCK_utils.Abilities
@@ -14,35 +15,34 @@ namespace MLPCPCK_utils.Abilities
 
         public static void AddAbility() {
             AbilityInfo abil = AbilityManager.New(nameof(MLPAbility),
-            "Candy Curse",
-        "This sigil permanently grants 1 attack per card killed by it's bearer. " +
-                        "Upon the card's death it will permanently lose 2 attack. " +
-                        "Upon reaching 4 or above attack the sigil's bearer will gain Made of Stone. " +
-                        "Upon reaching 7 or above attack, the card will gain Omnistrike. " +
-                        "This sigil may not obey cards that are not The Candy Mare.",
-                typeof(CandyCurse),
-                "candisigilmlp.png"
+                rulebookName: "Candy Curse",
+                rulebookDescription: "This sigil permanently grants 1 attack per card killed by it's bearer. " +
+                    "Upon the card's death it will permanently lose 2 attack. " +
+                    "Upon reaching 4 or above attack the sigil's bearer will gain Made of Stone. " +
+                    "Upon reaching 7 or above attack, the card will gain Omnistrike. " +
+                    "This sigil may not obey cards that are not The Candy Mare.",
+                behavior: typeof(CandyCurse),
+                pathToArt: "candisigilmlp.png"
             );
+            abil.SetAbilityRedirect("Made of Stone", Ability.MadeOfStone, GameColors.Instance.seafoam);
+            abil.SetAbilityRedirect("Omnistrike", Ability.AllStrike, GameColors.Instance.seafoam);
             abil.SetPixelAbilityIcon(TextureHelper.GetImageAsTexture("candisigilmlpsmall.png"));
+            abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
+            abil.SetNotMergeable();
             abil.powerLevel = 4;
             abil.canStack = false;
             abil.opponentUsable = false;
-            abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
-            abil.SetNotMergeable();
             ability = abil.ability;
         }
-
-        /*/
-         * Merge prevention patch: ModifyHostCardPatch.cs 
-        /*/
 
         private const string ID = "-cc.ab"; // ID needed to found CandyCurse's modInfo
         private CardModificationInfo _curse; // CandyCurse's modInfo, including all changes take from this ability
 
         private void Start() { // init > _curse init
             var mods = Card.Info.Mods;
-            if (mods.Count > 0) _curse = mods.Find(m => m.singletonId != null && m.singletonId.Equals(ID)); // Pop _curse modInfo from Card
-
+            if (mods.Count == 0) return;
+            
+            _curse = mods.Find(m => m.singletonId != null && m.singletonId.Equals(ID)); // Pop _curse modInfo from Card
             if (_curse == null) { // Create modInfo and push it to Card Mods, if it's not on Card yet
                 _curse = new CardModificationInfo { singletonId = ID };
                 RunState.Run.playerDeck.ModifyCard(Card.Info, _curse);
@@ -64,11 +64,11 @@ namespace MLPCPCK_utils.Abilities
         public override IEnumerator OnDie(bool wasSacrifice, PlayableCard killer) {
             int atk = _curse.attackAdjustment;
 
-            if (atk <= 8) {
+            if (atk <= 8) { // Base attack debuff
                 atk -= 2;
                 _curse.attackAdjustment = atk > 0 ? atk : 0;
             }
-            else {
+            else { // Progressive attack debuff
                 double st = (double)atk / 2;
                 double nd = 8 / (double)atk;
                 nd = 2 / nd;
