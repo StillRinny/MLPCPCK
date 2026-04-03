@@ -1,5 +1,6 @@
 ﻿using DiskCardGame;
 using InscryptionAPI.Card;
+using PonyLib.CardsHelpers;
 
 namespace MLPCPCK_utils.Abilities {
     public class Forgettable : AbilityBehaviour {
@@ -15,10 +16,11 @@ namespace MLPCPCK_utils.Abilities {
                 typeof(Forgettable),
                 "forgettablesigilmlp.png"
             );
-            abil.powerLevel = 1;
+            abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
+            abil.SetNotMergeable();
+            abil.powerLevel = -5; // Make zero priority for this Card  
             abil.canStack = false;
             abil.opponentUsable = false;
-            abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
             ability = abil.ability;
         }
     }

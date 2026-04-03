@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using DiskCardGame;
 using InscryptionAPI.Card;
 using InscryptionAPI.Helpers;
 using InscryptionAPI.RuleBook;
+using Rewired.Utils;
 using UnityEngine;
 
 namespace MLPCPCK_utils.Abilities
@@ -17,13 +19,15 @@ namespace MLPCPCK_utils.Abilities
                 rulebookName: "Chaos Agent",
                 rulebookDescription: "A shard of Discord's chaotic power imprisoned inside [creature]." +
                     "Under it's influence, behavior of the [creature] will randomly change every turn." +
-                    "\nThis sigil permanently negates Flying and Submerge sigils.",
+                    "\nThis sigil permanently negates Flying, Submerge, Morsel and Beehive sigils.",
                 behavior: typeof(ChaosAgent),
                 pathToArt: "chaossigilmlp.png"
             );
             abil.SetAbilityLearnedDialogue(new DialogueEvent.Line { text = "Madness...", speakerIndex = 1, emotion = Emotion.Neutral });
             abil.SetAbilityRedirect("Flying", Ability.Flying, GameColors.Instance.seafoam);
             abil.SetAbilityRedirect("Submerge", Ability.Submerge, GameColors.Instance.seafoam);
+            abil.SetAbilityRedirect("Morsel", Ability.Morsel, GameColors.Instance.seafoam);
+            abil.SetAbilityRedirect("Beehive", Ability.BeesOnHit, GameColors.Instance.seafoam);
             abil.SetPixelAbilityIcon(TextureHelper.GetImageAsTexture("chaossigilmlpsmall.png"));
             abil.AddMetaCategories(AbilityMetaCategory.Part1Rulebook);
             abil.powerLevel = 2;
@@ -51,83 +55,68 @@ namespace MLPCPCK_utils.Abilities
 
         private static Texture2D[] _icons = {
             TextureHelper.GetImageAsTexture("chaos.flying.sigilmlp.png"),
-            TextureHelper.GetImageAsTexture($"chaos.submerge.sigilmlp.png"),
-            TextureHelper.GetImageAsTexture($"chaos.morsel.sigilmlp.png"),
-            TextureHelper.GetImageAsTexture($"chaos.beehive.sigilmlp.png"),
-            TextureHelper.GetImageAsTexture($"chaos.dogging.sigilmlp.png"),
+            TextureHelper.GetImageAsTexture("chaos.submerge.sigilmlp.png"),
+            TextureHelper.GetImageAsTexture("chaos.morsel.sigilmlp.png"),
+            TextureHelper.GetImageAsTexture("chaos.beehive.sigilmlp.png"),
+            TextureHelper.GetImageAsTexture("chaos.dogging.sigilmlp.png"),
         };
 
         private void Start() { // Fast mod injection
             Card.AddTemporaryMod(_chaosStrategy);
+            if (!Card.OnBoard) return;
+            ChangeStrategy();
+            UpdateDisplay();
         }
 
         public override bool RespondsToResolveOnBoard() => true;
         public override IEnumerator OnResolveOnBoard() {
             ChangeStrategy();
+            yield return new WaitForSeconds(0.15f); // Visual Only 
+            UpdateDisplay();
             if (!HasLearned) yield return LearnAbility(0.5f);
             else yield return new WaitForSeconds(0.15f);
         }
 
         public override bool RespondsToUpkeep(bool playerUpkeep) => playerUpkeep == Card.IsPlayerCard();
-        public override IEnumerator OnUpkeep(bool _) {
-            ChangeStrategy();
-            if (!HasLearned) yield return LearnAbility(0.5f);
-            else yield return new WaitForSeconds(0.15f);
-        }
+        public override IEnumerator OnUpkeep(bool _) => OnResolveOnBoard();
 
         private void ChangeStrategy() {
-            // CleanUp previous Strategy
+            // > CleanUp previous Strategy
             _chaosStrategy.attackAdjustment = 0; // todo: Delete id Flying and Beehive attack Debuff removed
+            if (Card.Health > 2) _chaosStrategy.healthAdjustment = 0; // Remove health Buff if Card can survive it
             
-            var abil = _chaosStrategy.abilities[0];
-            if (_currentStrategy != Strategy.None && _currentStrategy != Strategy.Dogging) {
-                _chaosStrategy.negateAbilities[(int)_currentStrategy] = abil;
-                Card.Status.hiddenAbilities.Remove(abil);
-                if (abil == Ability.Submerge || abil == Ability.Morsel || abil == Ability.BeesOnHit) 
-                    Card.TriggerHandler.RemoveAbility(abil); 
+            if (_currentStrategy != Strategy.None && _currentStrategy != Strategy.Dogging) { // Skip if no Abilities taken from Strategy
+                var abil = _chaosStrategy.abilities[0];
+                _chaosStrategy.negateAbilities[(int)_currentStrategy] = abil; // Return current Ability to negation
+                Card.Status.hiddenAbilities.Remove(abil); // Make current Ability visible
+                if (abil == Ability.Submerge || abil == Ability.Morsel || abil == Ability.BeesOnHit) // Destroy Handler if Ability have it
+                    Card.TriggerHandler.RemoveAbility(abil);
             }
             
-            // Take new Strategy
-            List<Strategy> strategies = new List<Strategy> { Strategy.Flying, Strategy.Submerge, Strategy.Morsel, Strategy.BeesOnHit, Strategy.Dogging };
-            strategies.Remove(_currentStrategy);
-            switch (strategies[SeededRandom.Range(0, strategies.Count, GetRandomSeed() + Singleton<TurnManager>.Instance.TurnNumber)]) {
+            // > Take new Strategy
+            List<Strategy> strategies = new List<Strategy> { Strategy.Flying, Strategy.Submerge, Strategy.Morsel, Strategy.BeesOnHit, Strategy.Dogging }; // To not make 300 conversions
+            strategies.Remove(_currentStrategy); // To prevent second using 
+            _currentStrategy = strategies[SeededRandom.Range(0, strategies.Count, GetRandomSeed())]; // Randomly takes new one
+            switch (_currentStrategy) {
                 case Strategy.Flying:
-                    _currentStrategy = Strategy.Flying;
                     _chaosStrategy.attackAdjustment = Card.Attack > 2 ? -2 : 0; // todo: Debuff might be erased
-                    _chaosStrategy.abilities[0] = Ability.Flying;
-                    _chaosStrategy.negateAbilities[0] = Ability.None;
-                    Card.Status.hiddenAbilities.Add(Ability.Flying);
-                    Card.TriggerHandler.AddAbility(Ability.Flying);
-                    break;
-                case Strategy.Submerge:
-                    _currentStrategy = Strategy.Submerge;
-                    _chaosStrategy.abilities[0] = Ability.Submerge;
-                    _chaosStrategy.negateAbilities[1] = Ability.None;
-                    Card.Status.hiddenAbilities.Add(Ability.Submerge);
-                    Card.TriggerHandler.AddAbility(Ability.Submerge);
-                    break;
-                case Strategy.Morsel:
-                    _currentStrategy = Strategy.Morsel;
-                    _chaosStrategy.abilities[0] = Ability.Morsel;
-                    _chaosStrategy.negateAbilities[2] = Ability.None;
-                    Card.Status.hiddenAbilities.Add(Ability.Morsel);
-                    Card.TriggerHandler.AddAbility(Ability.Morsel);
-                    break;
+                    goto default;
                 case Strategy.BeesOnHit:
-                    _currentStrategy = Strategy.BeesOnHit;
-                    _chaosStrategy.attackAdjustment = Card.Attack > 2 ? -2 : 0; // todo: Debuff might be erased
-                    _chaosStrategy.abilities[0] = Ability.BeesOnHit;
-                    _chaosStrategy.negateAbilities[3] = Ability.None;
-                    Card.Status.hiddenAbilities.Add(Ability.BeesOnHit);
-                    Card.TriggerHandler.AddAbility(Ability.BeesOnHit);
-                    break;
+                    _chaosStrategy.healthAdjustment = 2; // todo: Debuff might be erased
+                    goto default;
                 case Strategy.Dogging:
-                    _currentStrategy = Strategy.Dogging;
                     _chaosStrategy.attackAdjustment = 2;
                     _chaosStrategy.abilities[0] = Ability.TriStrike; // TriStrike is placeholder, cuz Ability.None makes many bugs
                     break;
+                default: // Flying, Submerge, Morsel, Beehive
+                    int i = (int)_currentStrategy;
+                    Ability abil = _chaosStrategy.negateAbilities[i];
+                    _chaosStrategy.abilities[0] = abil;
+                    _chaosStrategy.negateAbilities[i] = Ability.None;
+                    Card.Status.hiddenAbilities.Add(abil);
+                    Card.TriggerHandler.AddAbility(abil);
+                    break;
             }
-            UpdateDisplay();
         }
         
         private void UpdateDisplay() {
