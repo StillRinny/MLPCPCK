@@ -102,7 +102,7 @@ namespace MLPCPCK_utils.Abilities
                     _chaosStrategy.attackAdjustment = Card.Attack > 2 ? -2 : 0; // todo: Debuff might be erased
                     goto default;
                 case Strategy.BeesOnHit:
-                    _chaosStrategy.healthAdjustment = 2; // todo: Debuff might be erased
+                    _chaosStrategy.healthAdjustment = 2;
                     goto default;
                 case Strategy.Dogging:
                     _chaosStrategy.attackAdjustment = 2;

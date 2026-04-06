@@ -22,7 +22,7 @@ namespace MLPCPCK_utils.SpecialAbilities
         protected static bool IsSurpriseExist = false;
         private static Dictionary<PlayableCard, int> SurpriseCards = new Dictionary<PlayableCard, int> {};
         private static List<string> SurpriseLines = new List<string> { "[e:1]Miss me?!?", "[e:4]Suuurprise!!!!", "I like this game!", "Don't forget about me!" };
-        
+
         private int turnsInPlay = 0;
         private int turnsUntilDisappearance;
 
@@ -57,12 +57,12 @@ namespace MLPCPCK_utils.SpecialAbilities
             if (turnManager.TurnNumber < 3) ClearSurprises(); // issue: Player exit combat via menu when Surprise disappeared
 
             bool isPlayerTurn = turnManager.IsPlayerTurn;
-            
+
             // Found cards
             List<PlayableCard> surpriseCards = surpriseDictionary.Keys.ToList();
             var cards = surpriseCards.FindAll(c => c.IsPlayerCard() == isPlayerTurn && surpriseDictionary[c] != turnManager.TurnNumber); // todo: do .Find(), if .FindAll() no sense
             if (cards.IsNullOrEmpty()) yield break;
-            
+
             foreach (var card in cards) { // todo: Make Single execution, if no sense
                 // Attack now?
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed() + Singleton<GlobalTriggerHandler>.Instance.NumTriggersThisBattle; // in fact GetRandomSeep() but static
@@ -103,12 +103,12 @@ namespace MLPCPCK_utils.SpecialAbilities
                     yield return turnManager.CombatPhaseManager.SlotAttackSequence(slot);
                     yield return new WaitForSeconds(0.1f);
                 }
-                
+
                 if (turnManager.CombatPhaseManager.DamageDealtThisPhase > 0) {
                     var combatPhaseManager = turnManager.CombatPhaseManager;
                     var playerIsAttacker = turnManager.IsPlayerTurn;
                     var specialSequencer = turnManager.SpecialSequencer;
-                    
+
                     yield return new WaitForSeconds(0.4f);
                     yield return combatPhaseManager.VisualizeDamageMovingToScales(playerIsAttacker);
                     int excessDamage = 0;
@@ -118,8 +118,7 @@ namespace MLPCPCK_utils.SpecialAbilities
                     }
                     int damage = combatPhaseManager.DamageDealtThisPhase - excessDamage;
                     AscensionStatsData.TryIncreaseStat(AscensionStat.Type.MostDamageDealt, combatPhaseManager.DamageDealtThisPhase);
-                    
-                    
+
                     if (!(specialSequencer != null) || !specialSequencer.PreventDamageAddedToScales)
                         yield return  Singleton<LifeManager>.Instance.ShowDamageSequence(damage, damage, !playerIsAttacker, 0.0f);
                     if (specialSequencer != null)
