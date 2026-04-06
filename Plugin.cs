@@ -41,6 +41,7 @@ namespace MLPCPCK_utils {
 
     public abstract class MLPSpecial {
         public static SpecialTriggeredAbility BlackFlank => BlankSpecialBehaviour.ability; // JLDR reference: MLPSpecial_BlankFlank
+        public static SpecialTriggeredAbility Infiltrator => NictisSpecialBehaviour.ability; // JLDR reference: MLPSpecial_Infiltrator
         public static SpecialTriggeredAbility Surprise => SurpriseSpecialBehaviour.ability; // JLDR reference: MLPSpecial_Surprise
     }
 
@@ -53,6 +54,6 @@ namespace MLPCPCK_utils {
 
         public const string PLUGIN_NAME = "MLP:FIM CardPack utils";
         
-        public const string PLUGIN_VERSION = "0.5.4";
+        public const string PLUGIN_VERSION = "0.5.9";
     }
 }
