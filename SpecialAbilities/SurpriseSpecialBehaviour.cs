@@ -50,7 +50,70 @@ namespace MLPCPCK_utils.SpecialAbilities
             PlayableCard.gameObject.SetActive(false);
         }
 
-        internal static IEnumerator TryToReturn(TurnManager turnManager) {
+        internal static IEnumerator TryToReturn(CombatPhaseManager combatPhaseManager) { // Transpiler edition
+            if (!IsSurpriseExist) yield break;
+            var surpriseDictionary = SurpriseCards;
+            if (surpriseDictionary.Count == 0) {
+                IsSurpriseExist = false;
+                yield break;
+            }
+
+            int turnNumber = Singleton<TurnManager>.Instance.TurnNumber;
+            if (turnNumber < 3) ClearSurprises(); // issue: Player exit combat via menu when Surprise disappeared
+            
+            bool isPlayerTurn = Singleton<TurnManager>.Instance.IsPlayerTurn;
+            
+            // Found cards
+            List<PlayableCard> surpriseCards = surpriseDictionary.Keys.ToList();
+            var cards = surpriseCards.FindAll(c => c.IsPlayerCard() == isPlayerTurn && surpriseDictionary[c] != turnNumber); // todo: do .Find(), if .FindAll() no sense
+            if (cards.IsNullOrEmpty()) yield break;
+
+            foreach (var card in cards) {// todo: Make Single execution, if no sense
+                // Attack now?
+                int seed = SaveManager.SaveFile.GetCurrentRandomSeed() + Singleton<GlobalTriggerHandler>.Instance.NumTriggersThisBattle; // in fact GetRandomSeep() but static
+                if (SeededRandom.Range(0, 2, seed) != 0) continue;
+
+                // Has empty slot?
+                List<CardSlot> emptySlots = Singleton<BoardManager>.Instance.GetSlots(isPlayerTurn).Where(s => s.Card == null).ToList();
+                if (emptySlots.IsNullOrEmpty()) break;
+
+                var slot = emptySlots[SeededRandom.Range(0, emptySlots.Count - 1, seed)];
+                yield return Singleton<BoardManager>.Instance.AssignCardToSlot(card, slot);
+                card.gameObject.SetActive(true);
+                int attackCount = turnNumber - surpriseDictionary[card]; // Count of attacks
+                surpriseDictionary.Remove(card);
+                if (slot.Card == null) continue; // Card is Dead for some reason
+
+                // Show special Text Line on a Card
+                TalkingCard talkingCard = card.GetComponent<TalkingCard>();
+                if (talkingCard != null)
+                {
+                    yield return new WaitForSeconds(0.1f);
+                    Singleton<ViewManager>.Instance.SwitchToView(View.Board, true, true);
+                    yield return new WaitForSeconds(0.1f);
+
+                    DialogueEvent.Line line = new DialogueEvent.Line
+                    {
+                        text = SurpriseLines[
+                            SeededRandom.Range(0, SurpriseLines.Count - 1, seed)]
+                    };
+                    yield return talkingCard.PlayLine(line);
+                }
+
+                //AccessTools.Property(typeof(CombatPhaseManager), "DamageDealtThisPhase").SetValue(combatPhaseManager, 0); // must be 0
+                //__instance.CombatPhaseManager.DamageDealtThisPhase = 0; // ^ private set ^ todo: << #1
+
+                // Make Card attack slots "x" times
+                for (int i = 0; i < attackCount; i++)
+                {
+                    if (slot.Card == null) continue;
+                    yield return combatPhaseManager.SlotAttackSequence(slot);
+                    yield return new WaitForSeconds(0.1f);
+                }
+            }
+        }
+
+        internal static IEnumerator TryToReturnOld(TurnManager turnManager) {
             // Base checks
             if (!IsSurpriseExist) yield break;
             var surpriseDictionary = SurpriseCards;
@@ -98,7 +161,7 @@ namespace MLPCPCK_utils.SpecialAbilities
                     yield return talkingCard.PlayLine(line);
                 }
 
-                AccessTools.Property(typeof(CombatPhaseManager), "DamageDealtThisPhase").SetValue(turnManager.CombatPhaseManager, 0); // must be 0
+                AccessTools.Property(typeof(CombatPhaseManager), "DamageDealtThisPhase").SetValue(turnManager.CombatPhaseManager, 0); // must be 0 // todo: вынести до foreach?
                     //__instance.CombatPhaseManager.DamageDealtThisPhase = 0; // ^ private set ^ todo: << #1
 
                 // Make Card attack slots "x" times
@@ -108,7 +171,7 @@ namespace MLPCPCK_utils.SpecialAbilities
                     yield return new WaitForSeconds(0.1f);
                 }
 
-                if (turnManager.CombatPhaseManager.DamageDealtThisPhase > 0) {
+                if (turnManager.CombatPhaseManager.DamageDealtThisPhase > 0) { // todo: убрать за пределы foreach?
                     var combatPhaseManager = turnManager.CombatPhaseManager;
                     var playerIsAttacker = turnManager.IsPlayerTurn;
                     var specialSequencer = turnManager.SpecialSequencer;

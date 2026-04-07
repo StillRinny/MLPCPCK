@@ -82,7 +82,7 @@ namespace MLPCPCK_utils.Abilities
 
         private void ChangeStrategy() {
             // > CleanUp previous Strategy
-            _chaosStrategy.attackAdjustment = 0; // todo: Delete id Flying and Beehive attack Debuff removed
+            _chaosStrategy.attackAdjustment = 0; // todo: Delete iF Flying and Beehive attack Debuff removed
             if (Card.Health > 2) _chaosStrategy.healthAdjustment = 0; // Remove health Buff if Card can survive it
             
             if (_currentStrategy != Strategy.None && _currentStrategy != Strategy.Dogging) { // Skip if no Abilities taken from Strategy
