@@ -50,7 +50,8 @@ namespace MLPCPCK_utils.SpecialAbilities
             PlayableCard.gameObject.SetActive(false);
         }
 
-        internal static IEnumerator TryToReturn(CombatPhaseManager combatPhaseManager) { // Transpiler edition
+        internal static IEnumerator TryToReturn() { // Transpiler edition
+            Plugin.Log.LogError("Dude");
             if (!IsSurpriseExist) yield break;
             var surpriseDictionary = SurpriseCards;
             if (surpriseDictionary.Count == 0) {
@@ -104,8 +105,8 @@ namespace MLPCPCK_utils.SpecialAbilities
                 //__instance.CombatPhaseManager.DamageDealtThisPhase = 0; // ^ private set ^ todo: << #1
 
                 // Make Card attack slots "x" times
-                for (int i = 0; i < attackCount; i++)
-                {
+                var combatPhaseManager = Singleton<TurnManager>.Instance.CombatPhaseManager;
+                for (int i = 0; i < attackCount; i++) {
                     if (slot.Card == null) continue;
                     yield return combatPhaseManager.SlotAttackSequence(slot);
                     yield return new WaitForSeconds(0.1f);

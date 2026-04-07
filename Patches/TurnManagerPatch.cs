@@ -15,13 +15,13 @@ namespace MLPCPCK_utils.Patches
 {
     [HarmonyPatch]
     public class TurnManagerPatch {
-        [HarmonyPatch(typeof(TurnManager), "PlayerTurn")]
+        /*[HarmonyPatch(typeof(TurnManager), "PlayerTurn")]
         [HarmonyPatch(typeof(TurnManager), "OpponentTurn")]
         [HarmonyPostfix]
         public static IEnumerator APostfix(IEnumerator enumerator, TurnManager __instance) {
             yield return enumerator;
             yield return SurpriseSpecialBehaviour.TryToReturnOld(__instance);
-        }
+        }*/
 
         [HarmonyPatch(typeof(TurnManager), "CleanupPhase")]
         [HarmonyPostfix]
@@ -32,9 +32,9 @@ namespace MLPCPCK_utils.Patches
     public class CombatPhaseManagerPatch {
         [HarmonyTranspiler]
         [HarmonyPatch(typeof(CombatPhaseManager), "DoCombatPhase", MethodType.Enumerator)]
-        public static IEnumerable<CodeInstruction> CombatPhaseManager_DoCombatPhase(IEnumerable<CodeInstruction> instructions, CombatPhaseManager __instance) {
+        public static IEnumerable<CodeInstruction> CombatPhaseManager_DoCombatPhase(IEnumerable<CodeInstruction> instructions) {
             List<CodeInstruction> codeInstructionList = new List<CodeInstruction>(instructions);
-            for (int i = 96; i < codeInstructionList.Count; i++) { // extractor
+            for (int i = 0; i < codeInstructionList.Count; i++) { // extractor
                 Plugin.Log.LogError($"[{i}]" + codeInstructionList[i].opcode.ToString());
                 if (i > 500) break;
             }
@@ -81,25 +81,30 @@ namespace MLPCPCK_utils.Patches
                 IL_0059: stloc.0      // V_0
                 IL_005a: leave        IL_064d        todo: leave ref !!!
                 ...
+                IL_00de: callvirt     instance class [netstandard]System.Collections.IEnumerator DiskCardGame.CombatPhaseManager::InitializePhase(class [netstandard]System.Collections.Generic.List`1<class DiskCardGame.CardSlot>, bool)
                 IL_00e3: stfld        object DiskCardGame.CombatPhaseManager/'<DoCombatPhase>d__4'::'<>2__current' todo: index ~20+ - current !!!
+                IL_00e8: ldarg.0      // this
             /*/
             
             //Singleton<TurnManager>.Instance.CombatPhaseManager; todo: try as __instance
-            MethodInfo tryToReturn = SymbolExtensions.GetMethodInfo(() => SurpriseSpecialBehaviour.TryToReturn(__instance)); // todo: можно вообще убрать параметр
+            MethodInfo tryToReturn = SymbolExtensions.GetMethodInfo(() => SurpriseSpecialBehaviour.TryToReturn()); // todo: можно вообще убрать параметр
             
-            int index = 97; // todo: found
             // todo: found enumerator base:
+            int index = 1;
             var state = codeInstructionList[index].operand; // todo: found <>1__state
+            index = 49;
             var current = codeInstructionList[index].operand; // todo: found <>2__current
+            index = 10;
             var leave = codeInstructionList[index].operand; // todo: found leave reference
-            
+
+            index = 178;
             _lb1:
             if (codeInstructionList[index].opcode == OpCodes.Ldarg_0 && codeInstructionList[index - 1].opcode == OpCodes.Initobj) {
                 codeInstructionList.Insert(index, new CodeInstruction(OpCodes.Ldarg_0));
                 codeInstructionList.Insert(index + 1, new CodeInstruction(OpCodes.Call, tryToReturn));
                 codeInstructionList.Insert(index + 2, new CodeInstruction(OpCodes.Stfld, current));
                 codeInstructionList.Insert(index + 3, new CodeInstruction(OpCodes.Ldarg_0));
-                codeInstructionList.Insert(index + 4, new CodeInstruction(OpCodes.Ldc_I4_1));
+                codeInstructionList.Insert(index + 4, new CodeInstruction(OpCodes.Ldc_I4_5));
                 codeInstructionList.Insert(index + 5, new CodeInstruction(OpCodes.Stfld, state));
                 codeInstructionList.Insert(index + 6, new CodeInstruction(OpCodes.Ldc_I4_1));
                 codeInstructionList.Insert(index + 7, new CodeInstruction(OpCodes.Stloc_0));
