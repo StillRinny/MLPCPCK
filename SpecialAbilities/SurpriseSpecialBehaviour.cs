@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using DiskCardGame;
@@ -6,6 +7,7 @@ using HarmonyLib;
 using InscryptionAPI.Card;
 using Sirenix.Utilities;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MLPCPCK_utils.SpecialAbilities
 {
@@ -27,7 +29,9 @@ namespace MLPCPCK_utils.SpecialAbilities
         private int turnsUntilDisappearance;
 
         public void Start() {
-            turnsUntilDisappearance = SeededRandom.Range(2, 6, GetRandomSeed());
+            try { // To hide error inside custom deck manager 
+                turnsUntilDisappearance = SeededRandom.Range(2, 6, GetRandomSeed());
+            } catch (Exception e) {  }
         }
 
         public override bool RespondsToUpkeep(bool playerUpkeep) => playerUpkeep == PlayableCard.IsPlayerCard();

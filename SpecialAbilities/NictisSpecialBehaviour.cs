@@ -23,10 +23,11 @@ namespace MLPCPCK_utils.SpecialAbilities
         private const string ID = "-ci.bh";
         private const string BaseForm = "MLPCPCK_Nictis";
         private const string DefaultForm = "MLPCPCK_Mare";
-        private static readonly Color FrozenSkyColor = new Color(0.12f, 0.68f, 0.92f);
+        private static readonly Color SunnyYellowColor = new Color(0.96f, 0.84f, 0.22f);
 
         public override bool RespondsToDrawn() => true;
         public override IEnumerator OnDrawn() {
+          //if (Card.Info.name != BaseForm) { yield return PlayableCard.PermanentReplacement(Card.Info, BaseForm, false, true); yield break;} // todo:
           DisguiseInBattle();
           yield break;
         }
@@ -79,6 +80,7 @@ namespace MLPCPCK_utils.SpecialAbilities
             unlockedRareCard = CardLoader.GetRandomUnlockedRareCard(Environment.TickCount);
           unlockedRareCard.Mods.Add(new CardModificationInfo() {
             singletonId = ID,
+            specialAbilities = new List<SpecialTriggeredAbility>() { MLPSpecial.Infiltrator },
             nameReplacement = string.Format(Localization.Translate("{0}?"), unlockedRareCard.DisplayedNameLocalized)
           });
           DisguiseAsCard(unlockedRareCard);
@@ -87,7 +89,7 @@ namespace MLPCPCK_utils.SpecialAbilities
 
         private void ShowBlueEyes() {
           Card.RenderInfo.forceEmissivePortrait = true;
-          Card.StatsLayer.SetEmissionColor(FrozenSkyColor);
+          Card.StatsLayer.SetEmissionColor(SunnyYellowColor);
           Card.RenderCard();
         }
 

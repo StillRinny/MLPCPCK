@@ -27,6 +27,7 @@ namespace MLPCPCK_utils {
             HardReset.AddAbility();
             Swarm.AddAbility();
             BlankSpecialBehaviour.AddAbility();
+            NictisSpecialBehaviour.AddAbility();
             SurpriseSpecialBehaviour.AddAbility();
         }
     }
