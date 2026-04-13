@@ -45,7 +45,7 @@ namespace MLPCPCK_utils.Abilities
                 _curse = new CardModificationInfo { singletonId = ID };
                 RunState.Run.playerDeck.ModifyCard(Card.Info, _curse);
             }
-            //UpdateAbilities(); // Needed only if other abilities added. AllStrike and MadeOfStone are Passive
+            UpdateAbilities(); // Needed only if other abilities added. AllStrike and MadeOfStone are Passive
         }
 
         // OnKill
@@ -79,7 +79,7 @@ namespace MLPCPCK_utils.Abilities
         // OnAttackEnded
         public override bool RespondsToAttackEnded() => Card.OnBoard;
         public override IEnumerator OnAttackEnded() {
-            //UpdateAbilities(); // Needed only if other abilities added. AllStrike and MadeOfStone are Passive
+            UpdateAbilities(); // Needed only if other abilities added. AllStrike and MadeOfStone are Passive
             yield break;
         }
 

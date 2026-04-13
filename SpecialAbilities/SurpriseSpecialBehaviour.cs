@@ -21,7 +21,7 @@ namespace MLPCPCK_utils.SpecialAbilities
             ).Id;
         }
 
-        protected static bool IsSurpriseExist = false;
+        private static bool IsSurpriseExist = false;
         private static Dictionary<PlayableCard, int> SurpriseCards = new Dictionary<PlayableCard, int> {};
         private static List<string> SurpriseLines = new List<string> { "[e:1]Miss me?!?", "[e:4]Suuurprise!!!!", "I like this game!", "Don't forget about me!" };
 
@@ -50,7 +50,7 @@ namespace MLPCPCK_utils.SpecialAbilities
             PlayableCard.gameObject.SetActive(false);
         }
 
-        internal static IEnumerator TryToReturn() { // Transpiler edition
+        /*internal static IEnumerator TryToReturn() { // Transpiler edition
             Plugin.Log.LogError("Dude");
             if (!IsSurpriseExist) yield break;
             var surpriseDictionary = SurpriseCards;
@@ -112,11 +112,11 @@ namespace MLPCPCK_utils.SpecialAbilities
                     yield return new WaitForSeconds(0.1f);
                 }
             }
-        }
+        }*/
 
         internal static IEnumerator TryToReturnOld(TurnManager turnManager) {
             // Base checks
-            if (!IsSurpriseExist) yield break;
+            if(!IsSurpriseExist) yield break;
             var surpriseDictionary = SurpriseCards;
             if (surpriseDictionary.Count == 0) {
                 IsSurpriseExist = false;
@@ -125,78 +125,79 @@ namespace MLPCPCK_utils.SpecialAbilities
             if (turnManager.TurnNumber < 3) ClearSurprises(); // issue: Player exit combat via menu when Surprise disappeared
 
             bool isPlayerTurn = turnManager.IsPlayerTurn;
-
+            
             // Found cards
             List<PlayableCard> surpriseCards = surpriseDictionary.Keys.ToList();
             var cards = surpriseCards.FindAll(c => c.IsPlayerCard() == isPlayerTurn && surpriseDictionary[c] != turnManager.TurnNumber); // todo: do .Find(), if .FindAll() no sense
             if (cards.IsNullOrEmpty()) yield break;
-
+            
+            int seed = SaveManager.SaveFile.GetCurrentRandomSeed() + Singleton<GlobalTriggerHandler>.Instance.NumTriggersThisBattle + Singleton<TurnManager>.Instance.TurnNumber;
+            int seedModifier = 0;
+            AccessTools.Property(typeof(CombatPhaseManager), "DamageDealtThisPhase").SetValue(turnManager.CombatPhaseManager as CombatPhaseManager3D, 0); // must be 0
+            (turnManager.CombatPhaseManager as CombatPhaseManager3D).damageWeights.Clear(); // issue: Surprise breaks when attack directly after other card
+            
             foreach (var card in cards) { // todo: Make Single execution, if no sense
-                // Attack now?
-                int seed = SaveManager.SaveFile.GetCurrentRandomSeed() + Singleton<GlobalTriggerHandler>.Instance.NumTriggersThisBattle; // in fact GetRandomSeep() but static
-                if (SeededRandom.Range(0, 2, seed) != 0) continue;
+                seed += seedModifier;
+                if (SeededRandom.Range(0, 2, seed) == 0) { // Attack now?
+                    List<CardSlot> emptySlots = Singleton<BoardManager>.Instance.GetSlots(isPlayerTurn).Where(s => s.Card == null).ToList();
+                    if (!emptySlots.IsNullOrEmpty()) { // Has empty slot?
+                        var slot = emptySlots[SeededRandom.Range(0, emptySlots.Count - 1, seed)];
+                        yield return Singleton<BoardManager>.Instance.AssignCardToSlot(card, slot);
+                        card.gameObject.SetActive(true);
+                        int attackCount = turnManager.TurnNumber - surpriseDictionary[card]; // Count of attacks
+                        surpriseDictionary.Remove(card);
+                        
+                        if (slot.Card == null) { // Card is Dead for some reason
+                            // Show special Text Line on a Card
+                            TalkingCard talkingCard = card.GetComponent<TalkingCard>();
+                            if (talkingCard != null) {
+                                yield return new WaitForSeconds(0.1f);
+                                Singleton<ViewManager>.Instance.SwitchToView(View.Board, true, true);
+                                yield return new WaitForSeconds(0.1f);
 
-                // Has empty slot?
-                List<CardSlot> emptySlots = Singleton<BoardManager>.Instance.GetSlots(isPlayerTurn)
-                    .Where(s => s.Card == null).ToList();
-                if (emptySlots.IsNullOrEmpty()) continue;
+                                DialogueEvent.Line line = new DialogueEvent.Line
+                                {
+                                    text = SurpriseLines[
+                                        SeededRandom.Range(0, SurpriseLines.Count - 1, seed)]
+                                };
+                                yield return talkingCard.PlayLine(line);
+                            }
 
-                var slot = emptySlots[SeededRandom.Range(0, emptySlots.Count - 1, seed)];
-                yield return Singleton<BoardManager>.Instance.AssignCardToSlot(card, slot);
-                card.gameObject.SetActive(true);
-                int attackCount = turnManager.TurnNumber - surpriseDictionary[card]; // Count of attacks
-                surpriseDictionary.Remove(card);
-                if (slot.Card == null) continue; // Card is Dead for some reason
-
-                // Show special Text Line on a Card
-                TalkingCard talkingCard = card.GetComponent<TalkingCard>();
-                if (talkingCard != null) {
-                    yield return new WaitForSeconds(0.1f);
-                    Singleton<ViewManager>.Instance.SwitchToView(View.Board, true, true);
-                    yield return new WaitForSeconds(0.1f);
-
-                    DialogueEvent.Line line = new DialogueEvent.Line {
-                        text = SurpriseLines[
-                            SeededRandom.Range(0, SurpriseLines.Count - 1, seed)]
-                    };
-                    yield return talkingCard.PlayLine(line);
-                }
-
-                AccessTools.Property(typeof(CombatPhaseManager), "DamageDealtThisPhase").SetValue(turnManager.CombatPhaseManager, 0); // must be 0 // todo: вынести до foreach?
-                    //__instance.CombatPhaseManager.DamageDealtThisPhase = 0; // ^ private set ^ todo: << #1
-
-                // Make Card attack slots "x" times
-                for (int i = 0; i < attackCount; i++) {
-                    if (slot.Card == null) continue;
-                    yield return turnManager.CombatPhaseManager.SlotAttackSequence(slot);
-                    yield return new WaitForSeconds(0.1f);
-                }
-
-                if (turnManager.CombatPhaseManager.DamageDealtThisPhase > 0) { // todo: убрать за пределы foreach?
-                    var combatPhaseManager = turnManager.CombatPhaseManager;
-                    var playerIsAttacker = turnManager.IsPlayerTurn;
-                    var specialSequencer = turnManager.SpecialSequencer;
-
-                    yield return new WaitForSeconds(0.4f);
-                    yield return combatPhaseManager.VisualizeDamageMovingToScales(playerIsAttacker);
-                    int excessDamage = 0;
-                    if (playerIsAttacker) {
-                        excessDamage = Singleton<LifeManager>.Instance.Balance + combatPhaseManager.DamageDealtThisPhase - 5;
-                        excessDamage = Mathf.Max(0, excessDamage);
+                            // Make Card attack slots "x" times
+                            for (int i = 0; i < attackCount; i++) {
+                                if (slot.Card == null) continue;
+                                yield return turnManager.CombatPhaseManager.SlotAttackSequence(slot);
+                                yield return new WaitForSeconds(0.1f);
+                            }
+                        }
                     }
-                    int damage = combatPhaseManager.DamageDealtThisPhase - excessDamage;
-                    AscensionStatsData.TryIncreaseStat(AscensionStat.Type.MostDamageDealt, combatPhaseManager.DamageDealtThisPhase);
-
-                    if (!(specialSequencer != null) || !specialSequencer.PreventDamageAddedToScales)
-                        yield return  Singleton<LifeManager>.Instance.ShowDamageSequence(damage, damage, !playerIsAttacker, 0.0f);
-                    if (specialSequencer != null)
-                        yield return  specialSequencer.DamageAddedToScale(damage + excessDamage, playerIsAttacker);
-                    if ((!(specialSequencer != null) || !specialSequencer.PreventDamageAddedToScales) && excessDamage > 0 && Singleton<TurnManager>.Instance.Opponent.NumLives == 1 && Singleton<TurnManager>.Instance.Opponent.GiveCurrencyOnDefeat) 
-                    {
-                        yield return Singleton<TurnManager>.Instance.Opponent.TryRevokeSurrender();
-                        RunState.Run.currency += excessDamage;
-                        yield return combatPhaseManager.VisualizeExcessLethalDamage(excessDamage, specialSequencer);
-                    }
+                }
+                seedModifier++;
+            }
+            if (turnManager.CombatPhaseManager.DamageDealtThisPhase > 0) {
+                var combatPhaseManager = turnManager.CombatPhaseManager;
+                var playerIsAttacker = turnManager.IsPlayerTurn;
+                var specialSequencer = turnManager.SpecialSequencer;
+                    
+                yield return new WaitForSeconds(0.4f);
+                yield return combatPhaseManager.VisualizeDamageMovingToScales(playerIsAttacker);
+                int excessDamage = 0;
+                if (playerIsAttacker) {
+                    excessDamage = Singleton<LifeManager>.Instance.Balance + combatPhaseManager.DamageDealtThisPhase - 5;
+                    excessDamage = Mathf.Max(0, excessDamage);
+                }
+                int damage = combatPhaseManager.DamageDealtThisPhase - excessDamage;
+                AscensionStatsData.TryIncreaseStat(AscensionStat.Type.MostDamageDealt, combatPhaseManager.DamageDealtThisPhase);
+                    
+                    
+                if (!(specialSequencer != null) || !specialSequencer.PreventDamageAddedToScales)
+                    yield return  Singleton<LifeManager>.Instance.ShowDamageSequence(damage, damage, !playerIsAttacker, 0.0f);
+                if (specialSequencer != null)
+                    yield return  specialSequencer.DamageAddedToScale(damage + excessDamage, playerIsAttacker);
+                if ((!(specialSequencer != null) || !specialSequencer.PreventDamageAddedToScales) && excessDamage > 0 && Singleton<TurnManager>.Instance.Opponent.NumLives == 1 && Singleton<TurnManager>.Instance.Opponent.GiveCurrencyOnDefeat) {
+                    yield return Singleton<TurnManager>.Instance.Opponent.TryRevokeSurrender();
+                    RunState.Run.currency += excessDamage;
+                    yield return combatPhaseManager.VisualizeExcessLethalDamage(excessDamage, specialSequencer);
                 }
             }
             Singleton<ViewManager>.Instance.Controller.LockState = ViewLockState.Unlocked;

@@ -10,25 +10,26 @@ using InscryptionAPI.Card;
 using MLPCPCK_utils.SpecialAbilities;
 using Sirenix.Utilities;
 using UnityEngine;
+using Surprise = MLPCPCK_utils.SpecialAbilities.SurpriseSpecialBehaviour;
 
 namespace MLPCPCK_utils.Patches
 {
     [HarmonyPatch]
     public class TurnManagerPatch {
-        /*[HarmonyPatch(typeof(TurnManager), "PlayerTurn")]
+        [HarmonyPatch(typeof(TurnManager), "PlayerTurn")]
         [HarmonyPatch(typeof(TurnManager), "OpponentTurn")]
         [HarmonyPostfix]
         public static IEnumerator APostfix(IEnumerator enumerator, TurnManager __instance) {
             yield return enumerator;
             yield return SurpriseSpecialBehaviour.TryToReturnOld(__instance);
-        }*/
+        }
 
         [HarmonyPatch(typeof(TurnManager), "CleanupPhase")]
         [HarmonyPostfix]
         public static void CleanupPhasePatch() => SurpriseSpecialBehaviour.ClearSurprises();
     }
 
-    [HarmonyPatch]
+    /*[HarmonyPatch]
     public class CombatPhaseManagerPatch {
         [HarmonyTranspiler]
         [HarmonyPatch(typeof(CombatPhaseManager), "DoCombatPhase", MethodType.Enumerator)]
@@ -37,7 +38,7 @@ namespace MLPCPCK_utils.Patches
             for (int i = 0; i < codeInstructionList.Count; i++) { // extractor
                 Plugin.Log.LogError($"[{i}]" + codeInstructionList[i].opcode.ToString());
                 if (i > 500) break;
-            }
+            }*/
             
             /*/
              * IL_024a: call         instance void DiskCardGame.CombatPhaseManager/'<DoCombatPhase>d__4'::'<>m__Finally1'()
@@ -87,7 +88,7 @@ namespace MLPCPCK_utils.Patches
             /*/
             
             //Singleton<TurnManager>.Instance.CombatPhaseManager; todo: try as __instance
-            MethodInfo tryToReturn = SymbolExtensions.GetMethodInfo(() => SurpriseSpecialBehaviour.TryToReturn()); // todo: можно вообще убрать параметр
+            /*MethodInfo tryToReturn = SymbolExtensions.GetMethodInfo(() => SurpriseSpecialBehaviour.TryToReturn()); // todo: можно вообще убрать параметр
             
             // todo: found enumerator base:
             int index = 1;
@@ -119,5 +120,5 @@ namespace MLPCPCK_utils.Patches
             }
             return codeInstructionList;
         }
-    }
+    }*/
 }
