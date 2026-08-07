@@ -2,7 +2,7 @@
 using InscryptionAPI.Card;
 using PonyLib.CardsHelpers;
 
-namespace MLPCPCK_utils.Abilities {
+namespace MLPCPCK.Abilities {
     public class Forgettable : AbilityBehaviour {
         internal static Ability ability;
         public override Ability Ability => ability;

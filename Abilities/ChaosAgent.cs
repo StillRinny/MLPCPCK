@@ -8,7 +8,7 @@ using InscryptionAPI.RuleBook;
 using Rewired.Utils;
 using UnityEngine;
 
-namespace MLPCPCK_utils.Abilities
+namespace MLPCPCK.Abilities
 {
     public class ChaosAgent : AbilityBehaviour {
         internal static Ability ability;

@@ -2,8 +2,9 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <!-- Define game directory as a property that can be overridden -->
-        <GameDir>/home/logo/de.Fold/:Temp/PS - Sources</GameDir>
-        <ModDir>/home/logo/de.Fold/:Temp/PS - Sources</ModDir>
+        <GameDir Condition="'$(GameDir)' == ''">N:\Programs\Steam\steamapps\common\Inscryption\Inscryption_Data\Managed</GameDir>
+        <ModDir Condition="'$(ModDir)' == ''">N:\Programs\overwolf\Data\Inscryption\profiles\Default\BepInEx</ModDir>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,17 +17,25 @@
     </ItemGroup>
 
     <ItemGroup>
+        <EmbeddedResource Include="Resources\Models\HardReset_Button" />
+    </ItemGroup>
+    
+    <ItemGroup>
         <!-- Game assemblies -->
         <Reference Include="Assembly-CSharp">
-            <HintPath>$(GameDir)\Assembly-CSharp-nstrip.dll</HintPath>
+            <HintPath>..\.dependencies\Assembly-CSharp-nstrip.dll</HintPath>
             <Private>False</Private>
         </Reference>
+        <!--<Reference Include="Assembly-CSharp-Original">
+            <HintPath>$(GameDir)\Assembly-CSharp.dll</HintPath>
+            <Private>False</Private>
+        </Reference>-->
         <Reference Include="InscryptionAPI">
-            <HintPath>$(ModDir)\InscryptionAPI.dll</HintPath>
+            <HintPath>$(ModDir)\plugins\API_dev-API\InscryptionAPI.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="PonyLib">
-            <HintPath>$(ModDir)\PonyLib.dll</HintPath>
+            <HintPath>$(ModDir)\plugins\PonyLib\PonyLib.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="Rewired_Core">
@@ -334,5 +343,6 @@
             <Private>False</Private>
         </Reference>
     </ItemGroup>
+    
     <Import Project="$(MSBuildThisFileDirectory)Directory.Build.props" Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.props')" />
 </Project>

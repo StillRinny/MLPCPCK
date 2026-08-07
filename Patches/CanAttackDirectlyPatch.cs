@@ -2,7 +2,7 @@ using DiskCardGame;
 using HarmonyLib;
 using InscryptionAPI.Card;
 
-namespace MLPCPCK_utils.Patches
+namespace MLPCPCK.Patches
 {
     [HarmonyPatch(typeof(PlayableCard), "CanAttackDirectly", 0)]
     public class CanAttackDirectlyPatch {

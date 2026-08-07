@@ -9,11 +9,11 @@ using Sirenix.Utilities;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace MLPCPCK_utils.SpecialAbilities
+namespace MLPCPCK.SpecialAbilities
 {
     public class SurpriseSpecialBehaviour : SpecialCardBehaviour
     {
-        public static SpecialTriggeredAbility ability;
+        internal static SpecialTriggeredAbility ability;
         public static void AddAbility() {
             ability = SpecialTriggeredAbilityManager.Add(nameof(MLPSpecial),
                 "Surprise",

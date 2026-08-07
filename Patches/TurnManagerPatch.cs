@@ -1,18 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
+﻿using System.Collections;
 using DiskCardGame;
 using HarmonyLib;
-using InscryptionAPI.Card;
-using MLPCPCK_utils.SpecialAbilities;
-using Sirenix.Utilities;
-using UnityEngine;
-using Surprise = MLPCPCK_utils.SpecialAbilities.SurpriseSpecialBehaviour;
+using MLPCPCK.SpecialAbilities;
 
-namespace MLPCPCK_utils.Patches
+namespace MLPCPCK.Patches
 {
     [HarmonyPatch]
     public class TurnManagerPatch {
@@ -48,7 +39,7 @@ namespace MLPCPCK_utils.Patches
         
              * todo: > NEW INSTRUCTIONS
              * ldarg.0      // this
-             * call         tryToReturn | class [netstandard]System.Collections.IEnumerator MLPCPCK_utils.SpecialAbilities.SurpriseSpecialBehaviour::TryToReturn(class ['Assembly-CSharp']DiskCardGame.CombatPhaseManager)
+             * call         tryToReturn | class [netstandard]System.Collections.IEnumerator MLPCPCK.SpecialAbilities.SurpriseSpecialBehaviour::TryToReturn(class ['Assembly-CSharp']DiskCardGame.CombatPhaseManager)
              * stfld        current | object DiskCardGame.CombatPhaseManager/'<DoCombatPhase>d__4'::'<>2__current'
              * ldarg.0      // this
              * ldc.i4.1

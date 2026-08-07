@@ -5,9 +5,8 @@ using InscryptionAPI.Card;
 using InscryptionAPI.Helpers;
 using InscryptionAPI.Triggers;
 using PonyLib.CardsHelpers;
-using UnityEngine;
 
-namespace MLPCPCK_utils.Abilities
+namespace MLPCPCK.Abilities
 {
     public class Swarm : AbilityBehaviour, IPassiveAttackBuff {
         internal static Ability ability;

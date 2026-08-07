@@ -5,11 +5,11 @@ using DiskCardGame;
 using InscryptionAPI.Card;
 using UnityEngine;
 
-namespace MLPCPCK_utils.SpecialAbilities
+namespace MLPCPCK.SpecialAbilities
 {
     public class NictisSpecialBehaviour : SpecialCardBehaviour
     {
-        public static SpecialTriggeredAbility ability;
+        internal static SpecialTriggeredAbility ability;
         public static void AddAbility() {
             ability = SpecialTriggeredAbilityManager.Add(nameof(MLPSpecial),
                 "Infiltrator",

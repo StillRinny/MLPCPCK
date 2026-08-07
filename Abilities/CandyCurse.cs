@@ -6,7 +6,7 @@ using InscryptionAPI.Helpers;
 using InscryptionAPI.RuleBook;
 using PonyLib.CardsHelpers;
 
-namespace MLPCPCK_utils.Abilities
+namespace MLPCPCK.Abilities
 {
     public class CandyCurse : AbilityBehaviour
     {
