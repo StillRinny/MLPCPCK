@@ -18,7 +18,7 @@ using UnityEngine;
 namespace MLPCPCK {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("cyantist.inscryption.api", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("PonyLib")]
+    [BepInDependency("PonyLib-S")]
 
     public class Plugin : BaseUnityPlugin
     {
@@ -32,7 +32,7 @@ namespace MLPCPCK {
             PreloadAudio();
             AssetBundleHelper.TryGet(ERTools.ExtractEmbeddedResource($"{nameof(MLPCPCK)}.{nameof(Resources)}.Models.HardReset_Button", Assembly.GetExecutingAssembly()), "HardResetButton", out HardReset.ResetItemPrefab);
             Log.LogInfo($"{RegisterAbilities()} Abilities registered");
-            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("ATS")) Log.LogInfo("ATS FOUNDED");
+            //if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("ATS")) Log.LogInfo("ATS FOUNDED");
         }
         
         private static int AddDialogs() {
