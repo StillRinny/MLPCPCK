@@ -5,6 +5,7 @@ using System.Linq;
 using DiskCardGame;
 using HarmonyLib;
 using InscryptionAPI.Card;
+using PonyLib.CardsHelpers;
 using Sirenix.Utilities;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -45,7 +46,7 @@ namespace MLPCPCK.SpecialAbilities
         private void MakeDisappeared() {
             IsSurpriseExist = true;
             SurpriseCards.Add(PlayableCard, TurnManager.Instance.TurnNumber);
-            PlayableCard.UnassignFromSlot();
+            PlayableCard.Slot.Card = null;
             PlayableCard.Slot = null;
             PlayableCard.gameObject.SetActive(false);
         }
@@ -114,7 +115,7 @@ namespace MLPCPCK.SpecialAbilities
             }
         }*/
 
-        internal static IEnumerator TryToReturnOld(TurnManager turnManager) {
+        internal static IEnumerator TryToReturn(TurnManager turnManager) {
             // Base checks
             if(!IsSurpriseExist) yield break;
             var surpriseDictionary = SurpriseCards;
@@ -142,33 +143,35 @@ namespace MLPCPCK.SpecialAbilities
                     List<CardSlot> emptySlots = Singleton<BoardManager>.Instance.GetSlots(isPlayerTurn).Where(s => s.Card == null).ToList();
                     if (!emptySlots.IsNullOrEmpty()) { // Has empty slot?
                         var slot = emptySlots[SeededRandom.Range(0, emptySlots.Count - 1, seed)];
-                        yield return Singleton<BoardManager>.Instance.AssignCardToSlot(card, slot);
                         card.gameObject.SetActive(true);
+                        yield return Singleton<BoardManager>.Instance.AssignCardToSlot(card, slot);
                         int attackCount = turnManager.TurnNumber - surpriseDictionary[card]; // Count of attacks
                         surpriseDictionary.Remove(card);
-                        
-                        if (slot.Card == null) { // Card is Dead for some reason
-                            // Show special Text Line on a Card
-                            TalkingCard talkingCard = card.GetComponent<TalkingCard>();
-                            if (talkingCard != null) {
-                                yield return new WaitForSeconds(0.1f);
-                                Singleton<ViewManager>.Instance.SwitchToView(View.Board, true, true);
-                                yield return new WaitForSeconds(0.1f);
 
-                                DialogueEvent.Line line = new DialogueEvent.Line
-                                {
-                                    text = SurpriseLines[
-                                        SeededRandom.Range(0, SurpriseLines.Count - 1, seed)]
-                                };
-                                yield return talkingCard.PlayLine(line);
-                            }
+                        if (slot.Card == null) continue; // Card is Dead for some reason
+                        // Show special Text Line on a Card
+                        card.TryGetComponent(out TalkingCard talkingComponent);
+                        Type talkingType = talkingComponent.GetType();
+                        talkingComponent.Destroy();
+                        talkingComponent = card.gameObject.AddComponent(talkingType) as TalkingCard; // issue: talkingCard stop talking
+                        if (talkingComponent != null) {
+                            yield return new WaitForSeconds(0.1f);
+                            Singleton<ViewManager>.Instance.SwitchToView(View.Board, true, true);
+                            yield return new WaitForSeconds(0.1f);
 
-                            // Make Card attack slots "x" times
-                            for (int i = 0; i < attackCount; i++) {
-                                if (slot.Card == null) continue;
-                                yield return turnManager.CombatPhaseManager.SlotAttackSequence(slot);
-                                yield return new WaitForSeconds(0.1f);
-                            }
+                            DialogueEvent.Line line = new DialogueEvent.Line
+                            {
+                                text = SurpriseLines[
+                                    SeededRandom.Range(0, SurpriseLines.Count - 1, seed)]
+                            };
+                            yield return talkingComponent.PlayLine(line);
+                        }
+
+                        // Make Card attack slots "x" times
+                        for (int i = 0; i < attackCount; i++) {
+                            if (slot.Card == null) continue;
+                            yield return turnManager.CombatPhaseManager.SlotAttackSequence(slot);
+                            yield return new WaitForSeconds(0.1f);
                         }
                     }
                 }

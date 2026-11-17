@@ -6,13 +6,13 @@ using MLPCPCK.SpecialAbilities;
 namespace MLPCPCK.Patches
 {
     [HarmonyPatch]
-    public class TurnManagerPatch {
+    public static class TurnManagerPatch {
         [HarmonyPatch(typeof(TurnManager), "PlayerTurn")]
         [HarmonyPatch(typeof(TurnManager), "OpponentTurn")]
         [HarmonyPostfix]
         public static IEnumerator APostfix(IEnumerator enumerator, TurnManager __instance) {
             yield return enumerator;
-            yield return SurpriseSpecialBehaviour.TryToReturnOld(__instance);
+            yield return SurpriseSpecialBehaviour.TryToReturn(__instance);
         }
 
         [HarmonyPatch(typeof(TurnManager), "CleanupPhase")]

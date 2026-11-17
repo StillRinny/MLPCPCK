@@ -23,19 +23,23 @@
     <ItemGroup>
         <!-- Game assemblies -->
         <Reference Include="Assembly-CSharp">
-            <HintPath>..\.dependencies\Assembly-CSharp-nstrip.dll</HintPath>
+            <HintPath>.dependencies\Assembly-CSharp-nstrip.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="PonyLib">
+            <HintPath>.dependencies\PonyLib.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <!--<Reference Include="Assembly-CSharp-Original">
             <HintPath>$(GameDir)\Assembly-CSharp.dll</HintPath>
             <Private>False</Private>
         </Reference>-->
-        <Reference Include="InscryptionAPI">
-            <HintPath>$(ModDir)\plugins\API_dev-API\InscryptionAPI.dll</HintPath>
+        <Reference Include="CustomSideDeck">
+            <HintPath>$(ModDir)\plugins\TVFLabs-CustomSideDeck\CustomSideDeck.dll</HintPath>
             <Private>False</Private>
         </Reference>
-        <Reference Include="PonyLib">
-            <HintPath>$(ModDir)\plugins\PonyLib\PonyLib.dll</HintPath>
+        <Reference Include="InscryptionAPI">
+            <HintPath>$(ModDir)\plugins\API_dev-API\InscryptionAPI.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="Rewired_Core">
