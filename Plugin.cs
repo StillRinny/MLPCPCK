@@ -94,6 +94,6 @@ namespace MLPCPCK {
 
         public const string PLUGIN_NAME = "MLP:FIM CardPack";
         
-        public const string PLUGIN_VERSION = "0.6.5";
+        public const string PLUGIN_VERSION = "0.6.6";
     }
 }
